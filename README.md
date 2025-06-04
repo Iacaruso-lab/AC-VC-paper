@@ -5,4 +5,4 @@ ___
 
 ## Dependencies  
 - allensdk: https://allensdk.readthedocs.io/en/latest/install.html
-- 
+- ccf streamlines: https://github.com/AllenInstitute/ccf_streamlines.git
