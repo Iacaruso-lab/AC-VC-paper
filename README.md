@@ -4,3 +4,4 @@ All figures are plotted from makePaperFigures_main.ipynb, using functions contai
 ___
 
 ## Dependencies  
+- allensdk: https://allensdk.readthedocs.io/en/latest/install.html
