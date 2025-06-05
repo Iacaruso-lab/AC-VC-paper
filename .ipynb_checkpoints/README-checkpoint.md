@@ -3,11 +3,8 @@ This is code to plot the figures in Egea-Weiss*,Turner-Bridger* et al. (####).
 The corresponding data is available at: ###
 
 ## How to use
-All figures are plotted from makePaperFigures_main.ipynb, using functions contained in the remaining notebooks.   
-To run this code, first create a conda envirnoment with the relevant packages. You will also need the dependencies listed below
-'''
-conda create -n paperFigures python=3.9.12 numpy=1.22.4 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 jupyter
-'''
+All figures are plotted from makePaperFigures_main.ipynb, using functions contained in the remaining notebooks. 
+
 ## Dependencies  
 - allensdk: https://allensdk.readthedocs.io/en/latest/install.html
 - ccf streamlines: https://github.com/AllenInstitute/ccf_streamlines.git
