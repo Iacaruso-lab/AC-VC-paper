@@ -5,7 +5,7 @@ The corresponding data is available at: ###
 ## Installation
 First create a conda environment with relevant packages and activate environment
 
-> conda create -n paperFigures python=3.9.12 numpy=1.22.3 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 statsmodels=0.13 jupyter seaborn  
+> conda create -n paperFigures python=3.9.12 numpy=1.22.3 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 statsmodels=0.13 scikit-learn=1.0.2 jupyter seaborn  
 
 Activate environment  
 
