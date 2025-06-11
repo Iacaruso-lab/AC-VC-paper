@@ -6,7 +6,10 @@ The corresponding data is available at: ###
 First create a conda environment with relevant packages and activate environment
 
 > conda create -n paperFigures python=3.9.12 numpy=1.22.3 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 statsmodels=0.13 jupyter seaborn  
-> conda activate paperFigures
+
+Activate environment  
+
+> conda activate paperFigures  
 
 Then, run these lines to install some extra dependencies  
 
