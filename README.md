@@ -1,5 +1,5 @@
 # AC-VC-paper
-This is code to plot the figures in Egea-Weiss*,Turner-Bridger* et al. (####).  
+This is code to plot the figures for the 2P imaging section of Egea-Weiss*,Turner-Bridger* et al. (####).  
 The corresponding data is available at: ###
 
 ## Installation
