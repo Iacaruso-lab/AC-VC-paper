@@ -23,5 +23,5 @@ You will need to install the matlab engine for python. The exact version to inst
 Lastly, you will need to clone the ccf_streamlines repository, available at: https://github.com/AllenInstitute/ccf_streamlines.git  
 
 ## How to use
-Figures are plotted in the jupyter notebooks, which include "main" in their title. They rely on functions defined in the respective python modules. Most figures and supplementary figures have their own jupyter notebook, with the expection os S8, S9 and S10, which are plotted within the notebooks for main Figures 3 and 4. 
+Figures are plotted in the jupyter notebooks, which include "main" in their title. They rely on functions defined in the respective python modules. Most figures and supplementary figures have their own jupyter notebook, with the exception os S8, S9 and S10, which are plotted within the notebooks for main Figures 3 and 4. 
 
