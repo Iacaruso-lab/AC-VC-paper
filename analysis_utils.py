@@ -1,19 +1,21 @@
 import numpy as np
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1 import AxesGrid
+#from matplotlib import cm
+#from mpl_toolkits.axes_grid1 import AxesGrid
 from scipy import stats
 import statsmodels.stats.multitest
-from sklearn.neighbors import KernelDensity
+from scipy.stats import percentileofscore
+
+#from sklearn.neighbors import KernelDensity
 import os
 from tqdm import tqdm
-import sys
+#Simport sys
 import pandas as pd
-import seaborn as sns
+#import seaborn as sns
 import imageio
 import itertools
-import random
+#import random
 
 def makeDataPaths(dataPath, animalPaths):
     paths =[]
@@ -41,55 +43,7 @@ def getBootstrapResult(path,name, nBatch,ops, doMultiCorr=1):
                 boot_df[j] = np.concatenate((boot_df[j],res[j]),1)
                   
     pairs = list(itertools.combinations(range(0, len(groups)), 2))
-#     mat_alpha_coefficient= [[ 0.1, 0.05, .025,.01, .005, .001],[ 1.22, 1.36, 1.48, 1.63, 1.73, 1.95]]
-    
-#     # fig = plt.figure()    
-#     bins_Da = np.arange(0,1,0.02)
-#     sigLevel_ks = []
-#     for i in range(len(pairs)):
-#         CI_low = np.nanpercentile(boot_df['ks_boot'][i,:], 2.5)
-#         CI_high = np.nanpercentile(boot_df['ks_boot'][i,:], 97.5)
-    
-#         n1 = int(np.nanmedian(boot_df['sampleLength0'][i,:]))
-#         n2 = int(np.nanmedian(boot_df['sampleLength1'][i,:]))
-       
-#         vec_Da=[mat_alpha_coefficient[1][j] * np.sqrt((n1+n2)/(n1*n2)) for j in range(len(mat_alpha_coefficient[1]))]
-    
-#         if CI_low > vec_Da[5]:
-#             sigLevel_ks.append(3)
-#         elif CI_low > vec_Da[3]:
-#             sigLevel_ks.append(2)
-#         elif CI_low > vec_Da[1]:
-#             sigLevel_ks.append(1)
-#         else:
-#             sigLevel_ks.append(0)
-    
-    
-#     # fig = plt.figure() 
-#     bins_rk = np.arange(1000,20000,1000)
-#     alphas = [0.1, 0.05, 0.01, 0.001]
-#     sigLevel_mannU= []
-#     for i in range(len(pairs)):
-    
-#         CI_low = np.nanpercentile(boot_df['rk_boot'][i,:], 2.5)
-#         CI_high = np.nanpercentile(boot_df['rk_boot'][i,:], 97.5)
-       
-#         n1 = int(np.nanmedian(boot_df['sampleLength0'][i,:]))
-#         n2 = int(np.nanmedian(boot_df['sampleLength1'][i,:])) 
-        
-#         crit =[get_critical_ranksum(n1,n2, alphas[i]) for i in range(len(alphas))]
-    
-#         if CI_low > crit[3][0]:
-#             sigLevel_mannU.append(3)
-#         elif CI_low > crit[2][0]:
-#             sigLevel_mannU.append(2)
-#         elif CI_low > crit[1][0]:
-#             sigLevel_mannU.append(1)
-#         else:
-#             sigLevel_mannU.append(0)
-                   
-           # median_diff[i,k] = abs(np.median(boot_data1) - np.median(boot_data2))
-    from scipy.stats import percentileofscore
+#   
     p_difference_quantiles_list = np.zeros(len(pairs),)
     for i in range(len(pairs)):
         diff_this = boot_df['median_diff'][i,:]
@@ -105,19 +59,12 @@ def getBootstrapResult(path,name, nBatch,ops, doMultiCorr=1):
     if doMultiCorr:
           p_difference_quantiles_list = statsmodels.stats.multitest.multipletests(p_difference_quantiles_list, method='fdr_bh')[1]  
 
-    
-    # ks_sigLevels_mat = np.empty((len(groups), len(groups))); ks_sigLevels_mat[:] = np.nan
-    # ks_distance_mat = np.empty((len(groups), len(groups))); ks_distance_mat[:] = np.nan
     median_dist_mat = np.empty((len(groups), len(groups))); median_dist_mat[:] = np.nan
-    # mannU_sigLevels_mat = np.empty((len(groups), len(groups))); mannU_sigLevels_mat[:] = np.nan
     p_difference_quantiles =  np.empty((len(groups), len(groups))); p_difference_quantiles[:] = np.nan
     sigLevels_quantiles =  np.empty((len(groups), len(groups))); sigLevels_quantiles[:] = np.nan
     for i in range(len(pairs)):
         pos0 = pairs[i][0]
         pos1 = pairs[i][1]
-      #  ks_sigLevels_mat[pos0,pos1] = sigLevel_ks[i]
-        #ks_distance_mat[pos1, pos0] =  np.nanmedian(boot_df['ks_boot'][i,:])
-       # mannU_sigLevels_mat[pos0,pos1] = sigLevel_mannU[i]
         median_dist_mat[pos1,pos0] = np.nanmedian(abs(boot_df['median_diff'][i,:]))
         
         p = p_difference_quantiles_list[i]
@@ -136,7 +83,6 @@ def getBootstrapResult(path,name, nBatch,ops, doMultiCorr=1):
 
 
 def makeProportions_bySpatialBin_v3(df,binned_map, idx, thresh = 0, mask = 'none', V1_mask=[]):
-    # idx = top
     chance = len(idx)/len(df)
     
     x = np.array(df['x'])
@@ -261,11 +207,6 @@ def doLinearRegression(x,y):
     x = np.delete(x,nanIdx).reshape((-1,1))
     y = np.delete(y,nanIdx)
      
-     # #try removing non-decimal numbers from y, since they are likely to be faulty gaussian fits
-     # good = np.nonzero(np.mod(y,1) > 0)[0] 
-     # x = x[good]     
-     # y = y[good]
-     
     reg = LinearRegression().fit(x, y) #fit
      
     r2 = reg.score(x,y)  #get fit parameters
@@ -358,12 +299,29 @@ def smooth_spatialBins(binned_values_map, spatialBin =300, nSmoothBins=1):
                 
     return binned_vals_map_smooth
 
+def makeSpatialBinnedMap(ref,spatialBin = 100):
+    
+    um_per_pixel = 9 #this is from measuring the WF FOV size
+     
+    spatialBin_px = int(spatialBin/um_per_pixel)
+            
+    nY,nX = ref.shape[0:2]
+
+    nBins_x = np.ceil(nX/spatialBin_px)
+    nBins_y = np.ceil(nY/spatialBin_px)
+                    
+    X,Y = np.meshgrid(np.arange(0,nBins_x), np.arange(0,nBins_y))
+        
+    Z = X*100 + Y
+        
+    matrix = np.repeat(Z, spatialBin_px, axis=1).repeat(spatialBin_px, axis=0)            
+    matrix = matrix[0:nY,0:nX]
+            
+    return matrix
 
 def getBinValues(binned_map, binned_map_values, map_colors, colors_LUT):
-    #binned_map_values = binned_prop_map_centre
     bins_unique = np.unique(binned_map)
 
-   
     bins, values, positions = [],[],[]
     for b in range(len(bins_unique)):
         idx = np.nonzero(binned_map == bins_unique[b])
@@ -479,8 +437,6 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
 
 
 def makeSessionReference(df,varName=[]):
-    # idx = green_aud_selective
-    # cluster_labels = k_means_labels
     sessionIdx = df['sessionIdx'].unique()  
     #
     dorsal = ['AM', 'PM', 'A', 'RL'] 
@@ -552,9 +508,6 @@ def makeSessionReference(df,varName=[]):
             seshVar.append(np.nanmean(np.array(df_thisSession[varName])))
         
         #source
-        # source = np.array(df_thisSession['source'])[0]
-        # seshSource.append(source)
-        
         #
         if 'pos_DV' in df_thisSession.keys():
             pos_DV.append(df_thisSession['pos_DV'].iloc[0])
@@ -563,7 +516,6 @@ def makeSessionReference(df,varName=[]):
         if 'prop_ventral' in df_thisSession.keys():
             prop_ventral.append(df_thisSession['prop_ventral'].iloc[0])
           
-        
         #sessionIdx 
         sessionIdx0 = np.array(df_thisSession['sessionIdx'])[0]
         seshIdx.append(sessionIdx0)
@@ -595,9 +547,6 @@ def makeSessionReference(df,varName=[]):
 
 def makeProportions_bySession_v2(df, ref_df, thresh =10):
      
-   # df = df_sel_azi
-   # ref_df = df_green_aud_resp
-    
     sessions = ref_df['sessionIdx'].unique()
     prop = []
     for sesh in sessions:
@@ -613,7 +562,6 @@ def makeProportions_bySession_v2(df, ref_df, thresh =10):
 
 
 def asignAreaToSession(df, policy='mostRois'):
-   # df = df_green_aud
     sessions = df['sessionIdx'].unique()
     
     areas, animals = [],[]
@@ -643,9 +591,7 @@ def asignAreaToSession(df, policy='mostRois'):
     return areaBySession
 
 def divideSessionsByArea(prop_bySession, areas, areaBySession):
-    #prop_bySession= green_aud_prop_sel  
-    #areaBySession = areas_green_aud
-
+   
     prop_byArea = []
     for area in areas:
         t = np.nonzero(areaBySession['areas'] == area)[0]
@@ -715,9 +661,6 @@ def doMannWhitneyU_forBoxplots(data, multiComp = 'fdr'):
 
 
 def getElevation_greenAud(df, maps, peak, onlyPeakSide = 1):
-    # maps = maps_green_aud_sig
-    # df_fit = df_fit_1d_green_aud_full
-    # peak = df_fit['gaussian_peak']
 
     leftBorder = 4.4
     rightBorder = 7.6
@@ -767,23 +710,13 @@ def getElevation_greenAud(df, maps, peak, onlyPeakSide = 1):
 
 
 def getSparsityIdx(maps):
-#     def sparseIdx(responses):
-#         si =  1-(np.nansum(responses/len(responses)))**2/np.sum(((responses**2)/len(responses)))   
     
-#         return si
-#     def sparseIdx_inv_simple(responses):
-#         si0 = ((np.nansum(responses)/len(responses))**2)/(np.nansum(responses**2)/len(responses))
-#         si = (1-si0)
-#         return si
     def sparseIdx_inv(responses):
         si0 =  (np.nansum(responses/len(responses)))**2/np.nansum(((responses**2)/len(responses)))  
         si = (1-si0)/(1-(1/len(responses)))
         return si
-    # maps = maps_freq_sig
     freqs = maps
   
-    # freqs = np.nanmean(maps[:,1:11,:],2)
-    # freqs = maps[:,1:12,:]
     freqs = np.reshape(freqs, (freqs.shape[0], freqs.shape[1]*freqs.shape[2]))
   
     nRois = freqs.shape[0]
@@ -858,9 +791,7 @@ def getDict_fromMatlabStruct(mat_file, struct_name):
 
 
 def doWilcoxon_forBoxplots(data, multiComp = 'hs'):
-    # Data should be a numpy array with the following shape: CatagoricalVar x observationsPerCategory
-    #data = green_vis_prop_resp
-    
+    # Data should be a numpy array with the following shape: CatagoricalVar x observationsPerCategory    
     nBox, nObservations = data.shape
     
     pVals, compIdx = [],[]

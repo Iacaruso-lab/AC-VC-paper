@@ -4,18 +4,12 @@ import os
 import matplotlib.pyplot as plt
 from scipy.io import loadmat 
 import imageio
-import glob
-#import tifffile as tiff
-# from skimage.registration import phase_cross_correlation,optical_flow_tvl1
-# from skimage.transform import warp
-#from pystackreg import StackReg
 from skimage import feature,filters
-# import cv2 as cv
 import matplotlib.patches as mpatches
-import matplotlib
+from matplotlib import cm
+import matplotlib.colors as mcolors
 import pandas as pd
 from tqdm import tqdm
-import matplotlib.colors as mcolors
 
 import ccf_streamlines.projection as ccfproj
 
@@ -76,13 +70,9 @@ def plotInjectionPercentages(animals, regionNames, ops):
                          'region': regionList,
                          'injection_percentage': np.array(perc)}   
 
-    #injection_df = pd.DataFrame(injection_summary)
-    #injection_df.to_csv(os.path.join(outputPath, 'Ac_injection_summary.csv')) 
-
    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\segmentedInjections_scatter.svg'))
 
 def plotInjectionlocation(animals,ops):
-    #sys.path.insert(0, 'C:\\Users\\egeaa\\Documents\\GitHub\ccf_streamlines\\') #this package needs to be downloaded first. Change paths if necessary
 
     filesPath = os.path.join(ops['dataPath'], 'allen_connectivity_analysis','flatmap_stuff')
 
@@ -262,8 +252,6 @@ def plotInjectionlocation(animals,ops):
         first = np.expand_dims(contours0[0,:],0)
         contours = np.append(contours0, first,axis=0)
 
-        # plt.fill(contours[:,0], contours[:,1], color='#BD1828', alpha =0.1)
-        # plt.plot(contours[:,0], contours[:,1], c= '#BD1828', linewidth=0.5)
         if animals[a] in anteriorAnimals:
             color = color_anterior
         elif animals[a] in posteriorAnimals:
@@ -271,9 +259,6 @@ def plotInjectionlocation(animals,ops):
 
         plt.fill(contours[:,0], contours[:,1], color=color, alpha =0.2)
         plt.plot(contours[:,0], contours[:,1], c= color, linewidth=0.1)
-        # centre_x, centre_y = centroid[a,:]
-        # plt.scatter(centre_x, centre_y, c= color, s=50)
-
 
         plt.xlim(100, 540)  # Restrict x-axis
         plt.ylim(650, 1070)  # Restrict y-axis (inverted for image coordinates)

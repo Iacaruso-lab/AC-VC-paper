@@ -2,23 +2,17 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from mpl_toolkits.axes_grid1 import AxesGrid
+import scipy
+from scipy.io import loadmat
 from scipy import stats
 import statsmodels.stats.multitest
 from sklearn.neighbors import KernelDensity
 import os
-#import pims
 from tqdm import tqdm
-import sys
 import pandas as pd
-import seaborn as sns
 import imageio
-import scipy
-from matplotlib import gridspec
-from matplotlib.colors import LinearSegmentedColormap
 from sklearn.metrics import confusion_matrix
 import mat73
-
 
 new_rc_params = {'text.usetex': False,
 "svg.fonttype": 'none'
@@ -45,15 +39,10 @@ def plotAvgFaceMotion_example(dataPath, ops):
     motion_vis_mean = np.nanmedian(motion_vis,1)
     motion_vis_std = stats.sem(motion_vis,1)
 
-    # nFrames, nAzi, nElev,nTrials = boutonMean.shape
-    # boutonMean0 = np.reshape(boutonMean,(nFrames,nAzi*nElev*nTrials))
-    # boutonMean1 = np.nanmedian(boutonMean0,1)
-    # bouton_std = stats.sem(boutonMean0,1)
     stimDuration = 0.5
     stimStart = respFrames[0]-1
     myColor = 'red'
     timePerFrame = 1/6.69 #to put the x axis of STAs in seconds
-    # frameTimes = np.arange(0,nFrames)*timePerFrame
     timeVals = [-1,0,1,2,3]
     timelabels = ['-1','0','1','2','3']
 
@@ -204,7 +193,6 @@ def getDecoderOutputs(dataName, bigDir):
         acc0 = np.zeros(len(sessions),)
         acc0_sh = np.zeros(len(sessions),)
         for s in range(len(sessions)):
-        # for s in range(90,100):
 
             idx = np.nonzero(sessionIndices == sessions[s])[0]
 
@@ -237,9 +225,6 @@ def getDecoderOutputs(dataName, bigDir):
 
             chance = 1/len(np.unique(test[nanIdx]))
             cm = confusion_matrix(predicted[nanIdx], test[nanIdx],normalize='true')
-
-            # plt.figure()
-            # plt.imshow(cm)
 
             acc = np.diag(cm)
             acc0[s] = np.nanmean(acc)
@@ -744,7 +729,6 @@ def plotGLM_traces_example(path, ops):
     time = frames/fs
 
     fig = plt.figure(figsize=(100*ops['mm'], 100*ops['mm']), constrained_layout=False)
-    # gs = gridspec.GridSpec(2, 5, figure=fig, hspace=0.2, left=0.05, right=0.97, bottom=0.1, top=0.92)
 
     ax =fig.add_subplot(1,1,1)
     plt.plot(time,gaussian_filter1d(traces_rec['traces_real'][:,niceIdx],1), color ='k')
@@ -845,7 +829,6 @@ def getMotorSub_vars(df, paths, dataset):
     prop_highVar = np.empty((len(sessionIdx_unique), nVar)); prop_highVar[:] = np.nan
     prop_highVar_motorSub = np.empty((len(sessionIdx_unique), nVar)); prop_highVar_motorSub[:] = np.nan
     prop_highVar_stimSub = np.empty((len(sessionIdx_unique), nVar)); prop_highVar_stimSub[:] = np.nan
-    #prop_highVar_motorSub_shift = np.zeros((len(sessionIdx_unique), nVar))
     if 'locations' in dataset:
         version = 'v2'
     else:
@@ -862,20 +845,9 @@ def getMotorSub_vars(df, paths, dataset):
 
         mat_file = scipy.io.loadmat(os.path.join(path, 'motorTuning_stats_motorSub_green_splitStim_gaussian_' + version + '.mat'))     
         tuning_stats_motorSub = getDict_fromMatlabStruct(mat_file, 'tuning_stats')  
-
-        # mat_file = scipy.io.loadmat(os.path.join(path,'GLM_output', 'motorTuning_stats_motorSub_shiftgreen_splitStim_v3.mat'))     
-        # tuning_stats_motorSub_shift = getDict_fromMatlabStruct(mat_file, 'tuning_stats')  
-
+        
         mat_file = scipy.io.loadmat(os.path.join(path, 'motorTuning_stats_stimSub_green_splitStim_gaussian_' + version + '.mat'))     
         tuning_stats_stimSub = getDict_fromMatlabStruct(mat_file, 'tuning_stats')  
-
-    #     if onlySel:
-    #         # sel_idx =np.load(os.path.join(path,'selective_green_freq.npy'))
-    #         sel_idx =np.load(os.path.join(path,'selective_green_aud.npy'))
-
-    #         for field in tuning_stats.keys():
-    #             tuning_stats[field] = tuning_stats[field][sel_idx,:]
-    #             tuning_stats_motorSub[field] = tuning_stats_motorSub[field][sel_idx,:]
 
         nRois = tuning_stats['higherVar'].shape[0]
         for n in range(nVar):
@@ -893,13 +865,6 @@ def getMotorSub_vars(df, paths, dataset):
             prop_highVar_motorSub[r,n] = len(highVar)/nRois
 
             #
-#             highVar0 = np.nonzero(tuning_stats_motorSub_shift['higherVar'][:,n])[0]
-#             sigVar = np.nonzero(tuning_stats_motorSub_shift['p_levene'][:,n] < alpha)[0]
-#             highVar = np.intersect1d(highVar0, sigVar)
-
-#             prop_highVar_motorSub_shift[r,n] = len(highVar)/nRois
-
-            #
             highVar0 = np.nonzero(tuning_stats_stimSub['higherVar'][:,n])[0]
             sigVar = np.nonzero(tuning_stats_stimSub['p_levene'][:,n] < alpha)[0]
             highVar = np.intersect1d(highVar0, sigVar)
@@ -912,12 +877,9 @@ def plotMotorSub_quantification(prop_highVar, prop_highVar_stimSub, prop_highVar
     median_byVar = np.nanmean(prop_highVar,0) 
     sem_byVar = np.nanstd(prop_highVar,0) 
     mean_byVar_motorSub = np.nanmean(prop_highVar_motorSub, 0)    
-    #sem_byVar_motorSub = stats.sem(prop_highVar_motorSub,0) 
     sem_byVar_motorSub = np.nanstd(prop_highVar_motorSub,0) 
     mean_byVar_stimSub = np.nanmean(prop_highVar_stimSub, 0)    
-    sem_byVar_stimSub = np.nanstd(prop_highVar_stimSub,0) 
-    # mean_byVar_motorSub_shift = np.nanmean(prop_highVar_motorSub_shift, 0)    
-    # sem_byVar_motorSub_shift = stats.sem(prop_highVar_motorSub_shift,0) 
+    sem_byVar_stimSub = np.nanstd(prop_highVar_stimSub,0)  
     color_stimSub =  '#BF65C9' 
     color_motorSub = '#008D36'
     
@@ -936,12 +898,7 @@ def plotMotorSub_quantification(prop_highVar, prop_highVar_stimSub, prop_highVar
     this = np.array([prop_highVar[:,0], prop_highVar_motorSub[:,0], prop_highVar_stimSub[:,0]])
     p_loc, compIdx = doWilcoxon_forBoxplots(this, multiComp = 'fdr_bh')
 
-
-    # plt.scatter(3,mean_byVar_motorSub_shift[0],s=3, c= color_motorSub_shift, label = 'Real')
-    # plt.errorbar(3, mean_byVar_motorSub_shift[0],sem_byVar_motorSub_shift[0],  color = color_motorSub_shift,linewidth=0.5)
-
     myPlotSettings_splitAxis(fig, ax, 'Percentage of boutons (%)', '', '',mySize=6)  
-    #plt.ylim([-0.01, 0.20])
     plt.yticks([0,0.1,0.2], ['0','10','20'])
     plt.xticks([0,1,2], ['Measured', 'Motor sub.', 'Stim. sub.'], rotation=45, horizontalalignment='right')
     ax.tick_params(axis='y', pad=1)   
@@ -958,11 +915,7 @@ def plotMotorSub_quantification(prop_highVar, prop_highVar_stimSub, prop_highVar
     plt.scatter(2, np.nanmedian(np.nanmean(prop_highVar_stimSub[:,1::],1)),s=8, c= color_stimSub)
     plt.vlines(2, np.nanpercentile(np.nanmean(prop_highVar_stimSub[:,1::],1),25),np.nanpercentile(np.nanmean(prop_highVar_stimSub[:,1::],1),75),  color =color_stimSub,linewidth=0.5)
 
-    # plt.scatter(33, np.nanmean(mean_byVar_motorSub_shift[1::]),s=3, c= color_motorSub_shift)
-    # plt.errorbar(33, np.nanmean(mean_byVar_motorSub_shift[1::]),stats.sem(mean_byVar_motorSub_shift[1::]),  color = color_motorSub_shift,linewidth=0.5)
-
     myPlotSettings_splitAxis(fig, ax, '', '', '', mySize=6)  
-    #plt.ylim([-0.01, 0.20])
     plt.yticks([], [])
     ax.spines["left"].set_visible(False)
     plt.xticks([0,1,2], ['Measured', 'Motor sub.', 'Stim. sub'], rotation=45, horizontalalignment='right')
@@ -975,7 +928,6 @@ def plotMotorSub_quantification(prop_highVar, prop_highVar_stimSub, prop_highVar
     fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\motorSub_quantification_' + dataset + '.svg'))
 
     return p_loc, p_face
-    # plt.hlines(0, -0.5, 12.5, color = 'gray', linewidth =1, linestyle = 'dashed')
     
 def plotResp_motorSub_freq(df, ops):
 
@@ -1034,11 +986,9 @@ def plotResp_motorSub_freq(df, ops):
     t, p = scipy.stats.wilcoxon(prop_sel_freq, prop_sel_freq_motorSub)
 
     plt.plot([-0.3,+0.3], [prop_sel_freq_median,prop_sel_freq_median], linewidth = 2, c = 'k', label = 'Real')
-    # xVals_scatter = np.random.normal(loc =0,scale =0.15,size = len(prop_resp)) 
     plt.scatter(np.repeat(0, len(prop_sel_freq)), np.array(prop_sel_freq), s = 3, facecolors = 'white' , edgecolors ='k', linewidths =0.25)
 
     plt.plot([1-0.3,1+0.3], [prop_sel_freq_median_motorSub,prop_sel_freq_median_motorSub], linewidth = 2, c = color_motorSub, label = 'Real')
-    # xVals_scatter = np.random.normal(loc =0,scale =0.15,size = len(prop_resp)) 
     plt.scatter(np.repeat(1, len(prop_sel_freq)), np.array(prop_sel_freq_motorSub), s = 3, facecolors = 'white' , edgecolors =color_motorSub, linewidths =0.25)
     for i in range(len(prop_sel_freq)):
         plt.plot([0,1],[prop_sel_freq[i], prop_sel_freq_motorSub[i]], linewidth = 0.1, color = 'lightgray')
@@ -1047,7 +997,6 @@ def plotResp_motorSub_freq(df, ops):
     myPlotSettings_splitAxis(fig, ax, '', '', '', mySize=6)
     if p < 0.05:
         plt.hlines(0.90, 0,1,color = 'k', linewidth =1)
-        # plt.text(0.4, 0.95, 'p : ' + str(np.round(p, 4)))
     print(str(p))
     plt.xticks([0,1], ['', ''])
     ax.tick_params(axis='y', pad=1)   
@@ -1127,11 +1076,9 @@ def plotResp_motorSub_locations(df, ops):
     t, p = scipy.stats.wilcoxon(prop_sel, prop_sel_motorSub)
 
     plt.plot([-0.3,+0.3], [prop_sel_median,prop_sel_median], linewidth = 2, c = 'k', label = 'Real')
-    # xVals_scatter = np.random.normal(loc =0,scale =0.15,size = len(prop_resp)) 
     plt.scatter(np.repeat(0, len(prop_sel)), np.array(prop_sel), s = 3, facecolors = 'white' , edgecolors ='k', linewidths =0.25)
 
     plt.plot([1-0.3,1+0.3], [prop_sel_median_motorSub,prop_sel_median_motorSub], linewidth = 2, c = color_motorSub, label = 'Real')
-    # xVals_scatter = np.random.normal(loc =0,scale =0.15,size = len(prop_resp)) 
     plt.scatter(np.repeat(1, len(prop_sel)), np.array(prop_sel_motorSub), s = 3, facecolors = 'white' , edgecolors =color_motorSub, linewidths =0.25)
     for i in range(len(prop_sel)):
         plt.plot([0,1],[prop_sel[i], prop_sel_motorSub[i]], linewidth = 0.1, color = 'lightgray')
@@ -1164,7 +1111,6 @@ def plotResp_motorSub_locations(df, ops):
     myPlotSettings_splitAxis(fig, ax, '', '', '', mySize=6)
     if p < 0.05:
         plt.hlines(0.90, 0,1,color = 'k', linewidth =0.5)
-        # plt.text(0.4, 0.95, 'p : ' + str(np.round(p, 4)))
 
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)  
@@ -1336,13 +1282,7 @@ def plotLocationChange(df, ops):
     plt.yticks([0,0.1, 0.2], ['0','10','20'])
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)  
-    # ax = fig.add_subplot(1,3,2)
-    # plt.scatter(df_fit_2d_green_aud['peak_azi'][gaussFit], df_fit_2d_green_aud_motorSub['peak_azi'][gaussFit], s=20, c='k', alpha = 0.3)
-    # plt.plot([0,12], [0, 12], linestyle = 'dashed', color = 'gray', linewidth = 2)
-    # plt.xticks([0,6,12], ['-108', '0', '108'])
-    # plt.yticks([0,6,12], ['-108', '0', '108'])
-    # myPlotSettings(fig, ax, 'Azimuth peak, Real - Motor ', 'Azimuth peak, Real', '')
-    
+   
     #################################################
     ax = fig.add_subplot(1,3,3)
     bins_delta = np.arange(0,1.666, 0.1)
@@ -1357,19 +1297,6 @@ def plotLocationChange(df, ops):
     plt.yticks([0,0.5, 1],['0','50', '100'])
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1) 
-
-    # fig = plt.figure(figsize=(self.mm*18,self.mm*30), constrained_layout=True)
-    # ax = fig.add_subplot(1,1,1)
-    # bins_delta = np.arange(0,5, 0.1)
-    # delta = abs(elevPeak_GLM - elevPeak_GLM_motorSub)
-    # hist_norm, bins =np.histogram(delta,bins_delta)
-    # hist_norm = hist_norm/np.sum(hist_norm)
-    # plt.hist(bins[:-1], bins, weights = hist_norm, color ='#69635E')
-    # myPlotSettings_splitAxis(fig, ax, 'Prop. boutons', '\u0394 Best azimuth (\u00B0)', '')
-    # plt.xlim([0,1.7])
-    # plt.ylim([0,1])
-    # plt.xticks([0,0.83333, 1.66666],['0','15', '30'])
-    # plt.yticks([0,0.5, 1],['0','0.5', '1'])
    
     #fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\deltaAzimuth_motorSub_dist.svg'))
 

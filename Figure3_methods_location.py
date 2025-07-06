@@ -1,31 +1,29 @@
 import numpy as np
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1 import AxesGrid
+#from matplotlib import cm
+#from mpl_toolkits.axes_grid1 import AxesGrid
 from scipy import stats
-import statsmodels.stats.multitest
-from sklearn.neighbors import KernelDensity
+#import statsmodels.stats.multitest
+#from sklearn.neighbors import KernelDensity
 import os
 #import pims
 from tqdm import tqdm
-import sys
+#import sys
 import pandas as pd
-import seaborn as sns
-import imageio
+#import seaborn as sns
+#import imageio
 import scipy
-from matplotlib import gridspec
-from matplotlib.colors import LinearSegmentedColormap
+#from matplotlib import gridspec
+#from matplotlib.colors import LinearSegmentedColormap
 
 from analysis_utils import *
 
-def quantifySignificance_coliseum_v2(df,ops):
+def quantifySignificance_coliseum_v2(df,eng, ops):
     
     areas = ops['areas']
     #####################################################
     #get responsive ones 
-    # green_aud_resp_idx, _ = self.applySignificanceTests(df, modality = modality,extra = extra, 
-    #                                                       sig_policy = 'responsive_maxWilcoxon', nSDs = 1, alpha = 0.05, capped = 0, GLM=1)
     green_aud_resp_idx= np.load(os.path.join(ops['dataPath'], 'locations_dataset','responsive_idx_coliseum_boutons.npy'))
 
     df_green_aud_resp = df.iloc[green_aud_resp_idx]
@@ -38,21 +36,13 @@ def quantifySignificance_coliseum_v2(df,ops):
     areas_green_aud = asignAreaToSession(df, policy='mostRois')
     green_aud_resp_byArea = divideSessionsByArea(green_aud_prop_resp, areas, areas_green_aud)
     #############################################
-    #get selective
-    # green_aud_selective_azi, _ = self.applySignificanceTests(df_green_aud, modality = modality,extra = extra, dimension = 'long', sig_policy = 'selective_maxWilcoxon', nSDs = 1, alpha = 0.05, capped = 0, GLM=1)
-    # green_aud_selective_elev, _ = self.applySignificanceTests(df_green_aud, modality = modality,extra = extra, dimension = 'short',sig_policy = 'selective_maxWilcoxon', nSDs = 1, alpha = 0.05, capped = 0, GLM=1)
-    # green_aud_selective_int, _= self.applySignificanceTests(df_green_aud, modality = modality,extra = extra, dimension = 'int', sig_policy = 'selective_maxWilcoxon', nSDs = 1, alpha = 0.05, capped = 0, GLM=1)
-
-    # green_aud_selective_all = np.unique(np.concatenate((green_aud_selective_azi, green_aud_selective_elev, green_aud_selective_int),0))
     #load index of selective boutons
     green_aud_selective_azi= np.load(os.path.join(ops['dataPath'],'locations_dataset', 'selective_green_aud_azimuth_maxWilcoxon_a1.npy'))
     green_aud_selective_elev =np.load(os.path.join(ops['dataPath'], 'locations_dataset','selective_green_aud_elevation_maxWilcoxon_a1.npy'))
     
     df_sel_azi = df.iloc[green_aud_selective_azi]
     df_sel_elev = df.iloc[green_aud_selective_elev]
-    # df_sel_int = df_green_aud.iloc[green_aud_selective_int]
-    # df_sel_all = df_green_aud.iloc[green_aud_selective_all]
-
+  
     #####################################
     #make the proportions selective
     green_aud_prop_sel_azi = makeProportions_bySession_v2(df_sel_azi, df_green_aud_resp,thresh=10)
@@ -61,27 +51,15 @@ def quantifySignificance_coliseum_v2(df,ops):
     green_aud_prop_sel_elev = makeProportions_bySession_v2(df_sel_elev, df_green_aud_resp)
     green_aud_prop_sel_median_elev = np.nanmedian(green_aud_prop_sel_elev)
 
-#     green_aud_prop_sel_int = makeProportions_bySession_v2(df_sel_int, df_green_aud_resp)
-#     green_aud_prop_sel_median_int = np.nanmedian(green_aud_prop_sel_int)
-
-#     green_aud_prop_sel_all = makeProportions_bySession_v2(df_sel_all, df_green_aud_resp)
-#     green_aud_prop_sel_median_all = np.nanmedian(green_aud_prop_sel_all)
-
     #########################################
     #assign area to session
     areas_green_aud = asignAreaToSession(df_green_aud_resp, policy='mostRois')
-    # noneResp = np.nonzero(np.array(green_aud_prop_resp) == 0)[0]
-    # areas_green_aud['areas'] = np.delete(areas_green_aud['areas'],noneResp)
-    # areas_green_aud['sessionIdx'] = np.delete(areas_green_aud['sessionIdx'],noneResp)
-
+    
     green_aud_sel_byArea_azi = divideSessionsByArea(green_aud_prop_sel_azi, areas, areas_green_aud)
     green_aud_sel_byArea_elev = divideSessionsByArea(green_aud_prop_sel_elev, areas, areas_green_aud)
-    # green_aud_sel_byArea_int = divideSessionsByArea(green_aud_prop_sel_int, areas, areas_green_aud)
-    # green_aud_sel_byArea_all = divideSessionsByArea(green_aud_prop_sel_all, areas, areas_green_aud)
-
+    
     #################################################
     #do shuffles
-   
     # Save for LMM
     sessionRef = makeSessionReference(df)
     notOut = np.nonzero(np.array(areas_green_aud['areas']) != 'OUT')[0]
@@ -101,7 +79,6 @@ def quantifySignificance_coliseum_v2(df,ops):
     meanLineWidth = 0.5
     meanLineWidth_small = 0.3
 
-
     #%%
     ylim_sel = [-0.05, 1.05]
     #Plot azi and elev
@@ -117,26 +94,17 @@ def quantifySignificance_coliseum_v2(df,ops):
         this = np.nonzero(np.isnan(data[i]) < 0.5)[0]
         data0.append(data[i][this])
     data = data0   
-    # ref =  green_aud_prop_sel_median_azi
     data_medians_byArea = np.array([np.nanmedian(data[j]) for j in range(len(data))])       
-    # pVals = doWilcoxon_againstRef(data, ref, multiComp = 'hs')
 
     formula = 'proportion_sel_azi ~ area +  Inj_DV + Inj_AP + (1|animal)'                 
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
     print(p_LMM)
-    # upper = [np.percentile(shuffled_prop_sel_azi[j,:], 97.5) for j in range(len(areas))]
-    # lower = [np.percentile(shuffled_prop_sel_azi[j,:], 2.5) for j in range(len(areas))]
-    # t,p_kruskal = stats.kruskal(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9])
-    # plt.hlines(prop_sel_azi_sh, 1,len(areas) +2, linestyle = 'dashed', linewidth =1, color ='k')
-    #p_mannWhitney0, compIdx = doMannWhitneyU_forBoxplots(data, multiComp = 'fdr')
-
     plt.vlines(1,0, 1, linewidth = 0.5, color = 'gray',zorder =0)
     for i in range(len(areas)):
         plt.plot([i-meanLineWidth_small+2,i+meanLineWidth_small+2], [data_medians_byArea[i],data_medians_byArea[i]] , linewidth = 2, c = ops['myColorsDict']['HVA_colors'][areas[i]],zorder = 2)
         xVals_scatter = np.random.normal(loc =i+2,scale =0.05,size = len(data[i])) 
         plt.scatter(xVals_scatter, data[i], s = 10, facecolors = 'white' , edgecolors = ops['myColorsDict']['HVA_colors'][areas[i]], linewidths =0.5,zorder = 1, alpha=0.3) 
 
-        # p_mannWhitney, compIdx = doMannWhitneyU_forBoxplots(data, multiComp = 'hs')
     if p_LMM < 0.05:
         cnt = 0
         p_mannWhitney, compIdx = doMannWhitneyU_forBoxplots(data, multiComp = 'fdr')
@@ -146,20 +114,11 @@ def quantifySignificance_coliseum_v2(df,ops):
                 pos = compIdx[c].split('_')
                 plt.hlines(ylim_sel[-1] - cnt, int(pos[0])+2, int(pos[1])+2, colors = 'k', linewidth=0.5)                    
                 cnt +=0.01
-       # t, p_signRank = stats.wilcoxon(data[i]-prop_sel_azi_sh)
-       # print(str(p_signRank))
-
-        # if p_signRank < 0.00511:
-        #     plt.text(i+2,ylim_sel[-1] -0.1, '*', fontsize=10)
 
     plt.ylim(ylim_sel)
     plt.xlim([-1,12])
-    # plt.yticks(yTickValues_resp)
-    # ax0.xaxis.set_ticklabels([])
-    # ax0.xaxis.set_ticks([])
     plt.yticks([0,0.5, 1], ['0','50', '100'])
     myPlotSettings_splitAxis(fig,ax,'Percentage of azimuth- \n selective boutons (%)','','', mySize=6)  
-    # myPlotSettings_splitAxis(fig,ax,'Percentage of azimuth- \n selective boutons (%)','','p= ' + str(p_LMM), mySize=6)  
     
     plt.xticks([0,2,3,4,5,6,7,8,9,10,11], np.append('All',areas), rotation =90)
     ax.tick_params(axis='y', pad=1)   
@@ -167,7 +126,6 @@ def quantifySignificance_coliseum_v2(df,ops):
 
     # green aud, selective, ELEVATION ONLY
     ax = fig.add_subplot(2,1,2)
-    # plt.hlines(0,-1, 1+len(areas)+1, linewidth = 1, color = self.myColorsDict['color_gray_zeroline'],zorder =0)
     plt.plot([- meanLineWidth, meanLineWidth], [green_aud_prop_sel_median_elev,green_aud_prop_sel_median_elev],linewidth = 2,c = 'k',zorder =2)     
     xVals_scatter = np.random.normal(loc =0,scale =0.05,size = len(green_aud_prop_sel_elev)) 
     plt.scatter(xVals_scatter, np.array(green_aud_prop_sel_elev), s = 10, facecolors = 'white' , edgecolors ='k', linewidths =0.5,zorder = 1, alpha =0.3)
@@ -179,29 +137,16 @@ def quantifySignificance_coliseum_v2(df,ops):
         data0.append(data[i][this])
     data = data0   
 
-    # ref =  green_aud_prop_sel_median_elev
     data_medians_byArea = np.array([np.nanmedian(data[j]) for j in range(len(data))])       
-    # pVals = doWilcoxon_againstRef(data, ref, multiComp = 'hs')
     formula = 'proportion_sel_elev ~ area + Inj_DV + Inj_AP + (1|animal)'                 
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
     print(p_LMM)
-
-    # plt.hlines(prop_sel_elev_sh, 1,len(areas) +2, linestyle = 'dashed', linewidth =1, color ='k')  
-
-    # upper = [np.percentile(shuffled_prop_sel_elev[j,:], 97.5) for j in range(len(areas))]
-    # lower = [np.percentile(shuffled_prop_sel_elev[j,:], 2.5) for j in range(len(areas))]
-    # t,p_kruskal = stats.kruskal(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9])
 
     plt.vlines(1,0, 1, linewidth = 0.5, color = 'gray',zorder =0)
     for i in range(len(areas)):
         plt.plot([i-meanLineWidth_small+2,i+meanLineWidth_small+2], [data_medians_byArea[i],data_medians_byArea[i]] , linewidth = 2, c = ops['myColorsDict']['HVA_colors'][areas[i]],zorder = 2)
         xVals_scatter = np.random.normal(loc =i+2,scale =0.05,size = len(data[i])) 
         plt.scatter(xVals_scatter, data[i], s = 10, facecolors = 'white' , edgecolors = ops['myColorsDict']['HVA_colors'][areas[i]], linewidths =0.5,zorder = 1, alpha=0.3) 
-
-        # plt.fill_between([i-meanLineWidth_small+2,i+meanLineWidth_small+2],[lower[i], lower[i]], [upper[i],upper[i]], color= 'gray', alpha = 0.2)
-        # # plt.hlines(pVals_ks[ar], ar - 0.3,ar + 0.3, color = 'r', label='real')            
-        # plt.hlines(lower[i],i-meanLineWidth_small+2,i+meanLineWidth_small+2, linewidth = 0.5, color = self.myColorsDict['color_gray_dashedline'],zorder =0)      
-        # plt.hlines(upper[i],i-meanLineWidth_small+2,i+meanLineWidth_small+2, linewidth = 0.5, color = self.myColorsDict['color_gray_dashedline'],zorder =0) 
 
     if p_LMM < 0.05:
         p_mannWhitney, compIdx = doMannWhitneyU_forBoxplots(data, multiComp = 'fdr')
@@ -211,18 +156,10 @@ def quantifySignificance_coliseum_v2(df,ops):
                 pos = compIdx[c].split('_')
                 plt.hlines(ylim_sel[-1] - cnt, int(pos[0])+2, int(pos[1])+2, colors = 'k', linewidth=0.5)                    
                 cnt +=0.01
-      #  t, p_signRank = stats.wilcoxon(data[i]-prop_sel_elev_sh)
-        # if p_signRank <  0.00511:
-        #     plt.text(i+2,ylim_resp[-1] -0.1, '*', fontsize=10)
-        #     print(str(p_signRank))
 
     plt.ylim(ylim_sel)
-    # plt.yticks(yTickValues_resp)
-    # ax0.xaxis.set_ticklabels([])
-    # ax0.xaxis.set_ticks([])
     plt.xlim([-1,12])
     plt.yticks([0,0.5, 1], ['0','50', '100'])
-   # myPlotSettings_splitAxis(fig,ax,'Percentage of elevation- \n selective boutons (%)','','p= ' + str(p_LMM), mySize=15)
     myPlotSettings_splitAxis(fig,ax,'Percentage of elevation- \n selective boutons (%)','','', mySize=6)  
 
     plt.xticks([0,2,3,4,5,6,7,8,9,10,11], np.append('All',areas), rotation =90)
@@ -231,13 +168,9 @@ def quantifySignificance_coliseum_v2(df,ops):
 
     fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\significance_withSessions_byArea_coliseum.svg'))
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\TuningProportions_coliseum_aziElev.svg'))
-
-
 
 def plotSignalCorrelation_byArea_CS(df, ops, mode = 'all' , computeMatrix =0): 
     
-    # areas = ops['areas']
     areas = ['P', 'POR', 'LI', 'LM', 'AL', 'RL', 'A', 'AM', 'PM','V1'] 
 
     if computeMatrix: #takes a while
@@ -283,9 +216,7 @@ def plotSignalCorrelation_byArea_CS(df, ops, mode = 'all' , computeMatrix =0):
                         this = corr_byArea[j][k]
                     else:
                         this = np.concatenate((this,corr_byArea[j][k]),0)
-                corrMatrix_byArea0[ar0, j] = np.nanmean(this)
-                
-        #np.save(os.path.join(ops['dataPath'], 'locations_dataset', 'signalCorr_matrix_resp_axons_coliseum.npy'),corrMatrix_byArea0)
+                corrMatrix_byArea0[ar0, j] = np.nanmean(this)             
     else:
         if mode=='all':
             name = 'signalCorr_matrix_resp_coliseum_boutons.npy'
@@ -303,16 +234,6 @@ def plotSignalCorrelation_byArea_CS(df, ops, mode = 'all' , computeMatrix =0):
             
         corrMatrix_byArea0 = np.load(os.path.join(ops['dataPath'], 'locations_dataset', 'signal_correlations', name))
         
-    #if small enough to load full matrix
-    # nBatch =40
-    # for i in tqdm(range(nBatch+1)):
-    #     corrs = np.load(os.path.join(outputPath, 'signal_corr_coliseum_resp_motorSub_' + str(i) + '.npy'))
-    #     if i ==0:
-    #         allCorr = corrs
-    #     else:
-    #         allCorr = np.concatenate((allCorr, corrs),0)       
-
-
     fig = plt.figure(figsize= (ops['mm']*100,ops['mm']*100), constrained_layout =True)
     ax = fig.add_subplot(1,1,1)
    
@@ -365,8 +286,6 @@ def plotSignalCorrelation_byArea_CS(df, ops, mode = 'all' , computeMatrix =0):
     plt.hlines(0,-0.5,2.5,color = 'dimgray', linewidth=0.5, linestyle='dashed')
     myPlotSettings_splitAxis(fig, ax, 'Signal correlation', '', '', mySize=6)
     plt.xticks([0,1,2], ['Ventral-Ventral','Dorsal-Dorsal', 'Ventral-Dorsal'], rotation = 45, horizontalalignment='right')
-    # plt.ylim([-0.0005, 0.003])
-    # plt.yticks([ 0, 0.001, 0.002,0.003],['0', '0.001', '0.002','0.003'])
     if mode == 'all':
         plt.ylim([-0.0005, 0.003])
         plt.yticks([ 0, 0.001, 0.002, 0.003],['0', '0.001', '0.002', '0.003'])

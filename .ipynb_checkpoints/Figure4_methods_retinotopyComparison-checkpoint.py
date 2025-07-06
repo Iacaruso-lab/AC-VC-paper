@@ -1,21 +1,41 @@
+# import numpy as np
+# import matplotlib
+# import matplotlib.pyplot as plt
+# from matplotlib import cm
+# #from mpl_toolkits.axes_grid1 import AxesGrid
+# from scipy import stats
+# import statsmodels.stats.multitest
+# #from sklearn.neighbors import KernelDensity
+# import os
+# #import pims
+# from tqdm import tqdm
+# #import sys
+# import pandas as pd
+# import seaborn as sns
+# import imageio
+# import scipy
+# from matplotlib import gridspec
+# from matplotlib.colors import LinearSegmentedColormap
+
 import numpy as np
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1 import AxesGrid
+#from matplotlib import cm
+#from mpl_toolkits.axes_grid1 import AxesGrid
+import scipy
 from scipy import stats
-import statsmodels.stats.multitest
-from sklearn.neighbors import KernelDensity
+#from scipy.stats import friedmanchisquare, wilcoxon                
+#import statsmodels.stats.multitest
+#from sklearn.neighbors import KernelDensity
 import os
 #import pims
 from tqdm import tqdm
-import sys
+#import sys
 import pandas as pd
 import seaborn as sns
 import imageio
-import scipy
 from matplotlib import gridspec
-from matplotlib.colors import LinearSegmentedColormap
+#from matplotlib.colors import LinearSegmentedColormap
 
 from analysis_utils import *
 
@@ -27,20 +47,9 @@ def plotProportionCentre_onMap_red(fig,ax, ref,ref2, map_v1,df, ops,cmap='OrRd',
     df = df[df['y'] != 0]
     df = df[df['area'] != 'OUT']
 
-   #
-    
-    # for b in binSize:
     leftBorder = 1.6666
     
-       
-    # b =300
-    centre_tuned = np.nonzero(np.array(df['aziPeak']) < leftBorder)[0]
-    # centre_tuned0 = np.setdiff1d(np.arange(0,len(np.array(df['peak']))), left_tuned)
-    # centre_tuned1 = np.setdiff1d(np.arange(0,len(np.array(df['peak']))), right_tuned)
-    # centre_tuned = np.intersect1d(centre_tuned0, centre_tuned1)
-    
-    # lateral_tuned = np.setdiff1d(np.arange(0,len(df)), centre_tuned)
-    
+    centre_tuned = np.nonzero(np.array(df['aziPeak']) < leftBorder)[0]    
     binned_map = makeSpatialBinnedMap(ref,spatialBin =b) 
 
     binned_prop_map_centre = makeProportions_bySpatialBin_v3(df,binned_map, centre_tuned, thresh = 5, mask='none', V1_mask=[])
@@ -50,28 +59,9 @@ def plotProportionCentre_onMap_red(fig,ax, ref,ref2, map_v1,df, ops,cmap='OrRd',
     def get_midPoint(x, a, b, c, d):
         return c + (x - a) * (d - c) / (b - a)
     
-    # ref2 = imageio.imread(os.path.join(refPath,'ReferenceMap_allen_black_nice_uncropped.png'))
-
-    
-    # fig = plt.figure(figsize=(self.mm*100, self.mm*70), constrained_layout=True)       
-      
-    # chance = len(centre_tuned)/len(df)
-   # chance = 0.18118882788254953
-
     vmax = 0.6 #np.nanmax(binned_values_map_smooth)
     vmin = 0
-    # midPoint =0.5
-   #  cmap = 'coolwarm'
-   #  midPoint = get_midPoint(chance, vmin,vmax, 0, 1)
-   #  colors = sns.color_palette(cmap, n_colors =100, as_cmap = True)
-   #  cmap_shift = shiftedColorMap(colors, start=0, midpoint=midPoint, stop=1, name='shiftedcmap')
-   # # 
-#%%
-    # cmap_shift = 'Purples'
 
-    # fig = plt.figure(figsize=(ops['mm']*70, ops['mm']*70), constrained_layout=True)       
-        
-    # ax = fig.add_subplot(1,1,1)
     plt.imshow(ref2)
     # plt.imshow(ref)
     pad = np.empty((13,513));pad[:] = np.nan
@@ -79,29 +69,16 @@ def plotProportionCentre_onMap_red(fig,ax, ref,ref2, map_v1,df, ops,cmap='OrRd',
     binned_map_adj = binned_map_adj[:,:-40]
     pad = np.empty((398,37));pad[:] = np.nan
     binned_map_adj = np.concatenate((pad,binned_map_adj),1)
-
-    # plt.imshow(binned_values_map,cmap=colors, vmin =4, vmax=8)
     plt.imshow(binned_map_adj,cmap=cmap, vmin =vmin, vmax=vmax,alpha = 0.95)
-    # plt.colorbar(fraction=0.038, pad=0.04)
-    # ax.spines["top"].set_color('k')            
-    # ax.spines["top"].set_linewidth(1)
-    # ax.spines["left"].set_color('k')            
-    # ax.spines["left"].set_linewidth(1)
-    # ax.spines["bottom"].set_color('k')            
-    # ax.spines["bottom"].set_linewidth(1)
-    # ax.spines["right"].set_color('k')            
-    # ax.spines["right"].set_linewidth(1)
     plt.yticks([],[])
     plt.xticks([],[])
     plt.axis('off')
-    # plt.title('Centre')
     cbar = plt.colorbar(ticks = [0,0.3, 0.6],fraction=0.038, pad=0.04)
     cbar.ax.set_yticklabels(['0', '30', '60'], fontsize=15)
 
+    
 def plotBestElevation_red_onMap(fig, df, ref, ref2,map_V1, b=250):
     
-    # df = df_red
-    # df = df.iloc[includeIdx]
     data = np.array(df['elevPeak'])
     df['elevPeak_inv'] = abs(np.nanmax(data)- data)   #flip it around so that max is top led location
     
@@ -115,17 +92,12 @@ def plotBestElevation_red_onMap(fig, df, ref, ref2,map_V1, b=250):
     binned_values_map = makeMeanValue_bySpatialBin_v2(df, binned_map,thresh =5,  varName = 'elevPeak_inv', mask ='', V1_mask = map_V1)
     
     binned_values_map_smooth = smooth_spatialBins(binned_values_map, spatialBin =b, nSmoothBins=1)
-    # binned_values_map_smooth = binned_values_map
 
     cmap = 'coolwarm'
-    # cmap = nice_cmaps[f]
-
     colors = sns.color_palette(cmap, n_colors =100, as_cmap = True)
         
     ax = fig.add_subplot(1,1,1)
     plt.imshow(ref2)
-    
-    
     pad = np.empty((13,513));pad[:] = np.nan
     binned_map_adj = np.concatenate((pad,binned_values_map_smooth),0)
     binned_map_adj = binned_map_adj[:,:-40]
@@ -133,23 +105,9 @@ def plotBestElevation_red_onMap(fig, df, ref, ref2,map_V1, b=250):
     binned_map_adj = np.concatenate((pad,binned_map_adj),1)
 
     plt.imshow(binned_map_adj,cmap=colors,vmin =2-(30/18), vmax=2+(30/18), alpha =0.95)
-    # plt.imshow(binned_values_map,cmap=colors, vmin =1, vmax=3, alpha = 1)
-
-    # plt.annotate('', xy=(xVals[0]+midPoint_x,yVals[0]), xytext=(xVals[-1]+midPoint_x,yVals[-1]), arrowprops=dict(arrowstyle='<->', linewidth=1.5, color = 'k'))
-    # plt.text(30, 30, 'p: ' + str(np.round(res['pos_proj'][0][1],3)))
-    # plt.axis('off')  
-    # ax.spines["top"].set_color('k')            
-    # ax.spines["top"].set_linewidth(1)
-    # ax.spines["left"].set_color('k')            
-    # ax.spines["left"].set_linewidth(1)
-    # ax.spines["bottom"].set_color('k')            
-    # ax.spines["bottom"].set_linewidth(1)
-    # ax.spines["right"].set_color('k')            
-    # ax.spines["right"].set_linewidth(1)
     plt.yticks([],[])
     plt.xticks([],[])
     plt.axis('off')
-    # if 'freq' in dataType:
     cbar = plt.colorbar(ticks = [2-(30/18),2,2+(30/18)],fraction=0.038, pad=0.04)
     cbar.ax.set_yticklabels(['-30', '0', '30'],fontsize=15)
     
@@ -164,10 +122,8 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
     
     idx0 = np.intersect1d(idx,inOnes)
     
-    
     data0 = peak[idx0] -6
     df0 = df.iloc[idx0]
-    
     
     data1 = np.array(df_red['aziPeak'])  #flip it around so that max is top led location
     peakAzi_byArea_red = []
@@ -204,7 +160,6 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
         peak_azi_bySession_sh.append(sh)
       
     sessionRef = makeSessionReference(df0)
-    # peak_azi_bySession = np.array(peak_azi_bySession)
     #alternative shuffling: 
     aziShuffles_green_all = []
     for n in range(1000):
@@ -224,19 +179,13 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
         peakAzi_byArea.append(peak_bySession_this_clean)
         
         peak_bySession_this_sh = np.array([peak_azi_bySession_sh[idx[i]] for i in range(len(idx))])
-        # peak_bySession_this_clean = peak_bySession_this_sh[np.nonzero(np.isnan(peak_bySession_this_sh) < 0.5)[0]]
 
         peakAzi_byArea_sh.append(peak_bySession_this_sh)
-    
-    # median_azi1 = [np.array([np.nanmedian(peakAzi_byArea[ar][i]) for i in range(len(peakAzi_byArea[ar]))]) for ar in range(len(areas))]
-    
+        
     notV1 = np.nonzero(np.array(sessionRef['seshAreas']) != 'V1')[0]
     notNan = np.nonzero(np.isnan(np.array(peak_azi_bySession)) <0.5)[0]
-    # thisIdx =notNan
     thisIdx = np.intersect1d(notV1,notNan)
-    # seshMapGood = np.nonzero(np.array(sessionRef['seshMapGood']) == 1)[0]
-    # thisIdx = np.intersect1d(thisIdx, seshMapGood)
-
+   
     df_forTest = pd.DataFrame({'peakAzi_bySession': np.array(peak_azi_bySession)[thisIdx],                                    
                             'area': np.array(sessionRef['seshAreas'])[thisIdx],
                             'stream': np.array(sessionRef['seshStream'])[thisIdx],
@@ -280,9 +229,7 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
     for ar in range(len(ops['areas'])):  
         idx = np.nonzero(np.array(sessionRef['seshAreas']) == ops['areas'][ar])[0]
         
-        peak_bySession_this = peak_azi_bySession_red[idx]
-        # notNan = np.nonzero(np.isnan(np.array(peak_bySession_this)) <0.5)[0]
-        
+        peak_bySession_this = peak_azi_bySession_red[idx]        
         peak_bySession_this_clean = peak_bySession_this[np.nonzero(np.isnan(peak_bySession_this) < 0.5)[0]]
 
         peakAzi_byArea_red.append(peak_bySession_this_clean)
@@ -304,8 +251,6 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
 
     formula = 'peakAzi_bySession ~ area + (1|animal)'                 
     p_LMM = eng.linearMixedModel_fromPython_anova(df_path, formula, nargout=1)
-    # t, p_kruskal = stats.kruskal(*peakAzi_byArea_red[1::], nan_policy ='omit')
-    #%%
     fig = plt.figure(figsize=(ops['mm']*80, ops['mm']*80), constrained_layout =True)
     
     ax = fig.add_subplot(1,1,1)
@@ -322,21 +267,8 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
     plt.ylim([-0.1,6.2])
     ax.tick_params(axis='y', pad=1)   
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\azimuthByArea_red.svg'))
-#
-    # if p_LMM < 0.05:
-    #     p_mannWhitney, compIdx = doMannWhitneyU_forBoxplots(peakElev_byArea_red, multiComp = 'hs')
-    #     cnt = 0
-    #     for c in range(len(compIdx)):
-    #         if p_mannWhitney[c] < 0.05:
-    #             pos = compIdx[c].split('_')
-    #             plt.hlines(3.7+cnt, int(pos[0]), int(pos[1]), color = 'k', linewidth =0.5)
-    #             cnt += 0.05
-    #%%
     ##% Distance between green and red
     fig = plt.figure(figsize=(ops['mm']*80, ops['mm']*80), constrained_layout =True)
-    # fig = plt.figure(figsize=(self.mm*50, self.mm*50), constrained_layout =True)
-
     ax = fig.add_subplot(1,1,1)
     for ar in range(1,len(ops['areas'])):
         median_red = np.nanmedian(peakAzi_byArea_red[ar])
@@ -365,20 +297,15 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
         vals_sh = np.array(vals_sh)[notNan]
         median_sh = np.nanmedian(np.array(vals_sh))
         
-        # plt.plot([ar-0.3, ar+0.3], [lower, lower], linestyle ='dashed', c = 'k')
-        # plt.plot([ar-0.3, ar+0.3], [upper, upper], linestyle ='dashed', c = 'k')
-
         plt.plot([ar-0.25, ar+0.25], [median_distance,median_distance] , linewidth = 2, c = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]],zorder = 2)
         xVals_scatter = np.random.normal(loc =ar,scale =0.05,size = len(distance)) 
         plt.scatter(xVals_scatter, np.array(distance), s = 10, facecolors = 'white' , edgecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], linewidths =0.5,alpha=0.3,zorder = 1)
         
         plt.plot([ar-0.25, ar+0.25], [median_sh,median_sh] , linewidth = 2, c = 'silver',zorder = 2)
         xVals_scatter = np.random.normal(loc =ar,scale =0.05,size = len(distance)) 
-        # plt.scatter(xVals_scatter, np.array(vals_sh), s = 5, facecolors = 'white' , edgecolors = 'lightgray', linewidths =0.5,zorder = 1)
         
         U,p = stats.mannwhitneyu(distance, vals_sh)
         adj_p = statsmodels.stats.multitest.multipletests(np.repeat(p,9), method='fdr_bh')[1][0]
-        # print(str(p))
         
         if adj_p < 0.05 and adj_p > 0.01:
             plt.text(ar-0.2, 2, '*', fontsize=15)
@@ -387,22 +314,6 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
         elif adj_p < 0.001:
              plt.text(ar-0.2, 2, '***', fontsize=15)
              
-        
-          
-        
-        
-        
-        # distance_sh = abs(peak_areaShuffle[ar,:] - median_red)
-        # upper = np.percentile(distance_sh, 97.5)
-        # lower = np.percentile(distance_sh, 2.5)
-        
-        # plt.fill_between([ar-0.3,ar+0.3],[lower, lower], [upper,upper], color= 'gray', alpha = 0.2)
-        # # plt.hlines(pVals_ks[ar], ar - 0.3,ar + 0.3, color = 'r', label='real')            
-        # plt.hlines(lower,ar-0.3,ar+0.3, linewidth = 0.5, color = self.myColorsDict['color_gray_dashedline'],zorder =0)      
-        # plt.hlines(upper,ar-0.3,ar+0.3, linewidth = 0.5, color = self.myColorsDict['color_gray_dashedline'],zorder =0) 
-        
-        
-    # myPlotSettings_splitAxis(fig,ax, 'Azimuth distance (\u00B0)', '', '',mySize=6)
     myPlotSettings_splitAxis(fig,ax, 'Azimuth distance (deg)', '', '',mySize=15)
     plt.xticks(np.arange(1,len(ops['areas'])), ops['areas'][1::], rotation =90, fontsize=15)
     deg_per_N = 18
@@ -416,77 +327,7 @@ def plotAzimuthDistance(df,peak,gaussFit, df_red, ops, eng,nShuffles=100):
     for tick in ax.get_xticklabels():
         tick.set_fontsize(5) 
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\azimuthDistance_byArea.svg'))
 
-   
-    #%%
-#     fig = plt.figure(figsize=(ops['mm']*80, ops['mm']*80), constrained_layout =True)
-#     ax = fig.add_subplot(1,1,1)
-#     vals_red, vals_green = [],[]
-#     for ar in range(1,len(ops['areas'])):
-#         median_red = np.nanmedian(peakAzi_byArea_red[ar])
-#         # print(str(median_red))
-#         vals_thisArea = peakAzi_byArea[ar]
-        
-#         notNan = np.nonzero(np.isnan(np.array(vals_thisArea)) <0.5)[0]
-#         vals_thisArea = np.array(vals_thisArea)[notNan]
-       
-#         plt.scatter(np.repeat(median_red,len(vals_thisArea)), vals_thisArea, s = 3, facecolors = 'white' , edgecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], linewidths =0.25,alpha=0.9, zorder = 1)
-#         plt.scatter(median_red, np.median(vals_thisArea), s = 5, facecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], edgecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], linewidths =1,zorder = 2)
-    
-#         vals_green.append(np.median(vals_thisArea))
-#         vals_red.append(median_red)
-
-#         # if ar ==1:
-#         #     vals_green= vals_thisArea         
-#         #     vals_red= np.repeat(median_red,len(vals_thisArea))
-#         # else:
-#         #     vals_green= np.concatenate((vals_green, vals_thisArea),0)       
-#         #     vals_red= np.concatenate((vals_red, np.repeat(median_red,len(vals_thisArea))),0)       
-#     vals_red = np.array(vals_red)
-#     vals_green = np.array(vals_green)
-
-#     df_forTest = pd.DataFrame({'median_green': vals_green, 
-#                                'median_red': vals_red})
-
-#     formula = 'median_green~ median_red'
-
-#     df_path= os.path.join(ops['outputPath'],'df_bySession_green_freq_forLMM.csv')
-#     df_forTest.to_csv(df_path)
-    
-#     savePath = os.path.join(ops['outputPath'], 'LMM_freq_green_aud.mat')
-    
-    #run LMM and load results
-#     res, fitLines, fitCI = eng.linearMixedModel_fromPython(df_path, formula,savePath, nargout=3) 
-
-#     mat_file = scipy.io.loadmat(savePath)   
-#     res = getDict_fromMatlabStruct(mat_file, 'res')
-
-#     lm = doLinearRegression(vals_red, vals_green)
-#     x_axis = 'median_red'
-#     fitLine = np.array(fitLines[x_axis])
-#     fitLine_down = np.array(fitCI[x_axis])[:,0]
-#     fitLine_up = np.array(fitCI[x_axis])[:,1]
-#     xVals = np.linspace(min(df_forTest[x_axis]), max(df_forTest[x_axis]), len(fitLine))   
-#     plt.fill_between(xVals, fitLine_up, fitLine_down, facecolor = 'silver',alpha = 0.3)
-#     plt.plot(xVals, fitLine, c = 'k',linestyle='dashed',linewidth = 0.5)
-
-
-#     myPlotSettings_splitAxis(fig, ax, '', '', '',mySize=6)
-#     plt.yticks([20/18,60/18,100/18], ['20', '60', '100'])
-#     plt.ylim([20/18,100/18])
-#     plt.xticks([20/18,60/18,100/18], ['20', '60', '100'])
-#     plt.xlim([20/18,100/18])
-#     plt.plot([0,6],[0,6], color='gray', linewidth=0.25)
-#     # plt.plot(lm['x_vals'], lm['y_vals'], c = 'b')
-#     plt.text(20/18,5, 'r: ' + str(np.round(lm['corr'],3)) + '\np: ' + str(np.round(res[x_axis][0][1],3)), fontsize=5)
-#     ax.tick_params(axis='y', pad=1)   
-#     ax.tick_params(axis='x', pad=1)   
-
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\azimuthCorrelation_byArea.svg'))
-    
-    #%%
-    # return vals_green, vals_red
 
 def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
     
@@ -537,13 +378,7 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
         df_green_this = df_green.iloc[idx_thisSession_g]
         
         fitAzis_green.append(np.nanmedian(np.array(df_green_this['aziPeak_fit'])))
-        
-        # idx_thisSession_g0 = np.nonzero(np.array(df_green_elev['sessionIdx']) == commonOnes_a1[s])[0]
-        
-        # df_green_this = df_green_elev.iloc[idx_thisSession_g0]
-        
-        # meanElevs_green.append(np.nanmean(np.array(df_green_this['elevPeak'])))
-
+    
         theseAreas = np.array(df_green_this['area'])
         areas1, counts = np.unique(theseAreas, return_counts=True)
                    
@@ -595,12 +430,9 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
     combDF = pd.DataFrame(data= combDict)
     #
     # run LMM 
-    # combDF.to_csv(os.path.join(outputPath,'df_bySession_greenAndRed_fitAziPeak_a1Only_allData.csv'))
-    #prepare for LMM
     df_path= os.path.join(ops['outputPath'],'df_bySession_greenVsRed_forLMM.csv')
     combDF.to_csv(df_path)
     formula = 'fitAzis_green ~ 1 + fitAzis_red + (1|animal)'
-    # formula = 'meanElevs_green ~ 1 + fitElevs_red + (1|animal)'
 
     savePath = os.path.join(ops['outputPath'], 'LMM_greenVsRed_bySession.mat')
     
@@ -609,12 +441,8 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
 
     mat_file = scipy.io.loadmat(savePath)   
     res = getDict_fromMatlabStruct(mat_file, 'res')
-    
-    # if len(data_bySession) < len(commonOnes_a1):
-    #     print('empty sessions, attention!')
         
     azimuths = [ '0', '36', '72', '108']
-    # azimuths = ['0', '36', '72', '108']
     
     intercept = res['Intercept'][0][0] # from matlab LMM 
     slope = res['fitAzis_red'][0][0]
@@ -644,20 +472,14 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
     ax.tick_params(axis='y', pad=1)  
     ax.tick_params(axis='x', pad=1)   
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\bestAzimuth_acrossMod_matchedFOV.svg'))
-
     #%% NOw correlate it with proportion of centre-tuned boutons
     outOnes = np.nonzero(np.array(df['area']) == 'OUT')[0]
     inOnes = np.setdiff1d(np.arange(0, len(df)), outOnes)
     
     idx0 = np.intersect1d(inOnes,gaussFit)
     
-    # contraIdx = np.nonzero(peak >= 6)[0]
-    # idx = np.intersect1d(idx0,contraIdx)
-    
     df_gaussFit = df.iloc[idx0]
     peak_gauss = peak[idx0]
-    # df_green['aziPeak_fit'] = peak_green-6
     
     leftBorder = 4.4
     rightBorder = 7.6
@@ -670,17 +492,7 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
     
     #shuffle
     nShuffles = 1000
-    # df_gaussFit_sh = df_gaussFit.copy()
-    # shuffled_session = df_gaussFit['sessionIdx'].sample(frac=1, replace=False).reset_index(drop=True)
-    # df_gaussFit_sh['sessionIdx'] = shuffled_session
     peak_gauss_sh = peak_gauss.copy(); np.random.shuffle(peak_gauss_sh)
-    
-    # left_tuned_gauss = np.intersect1d(gaussFit, left_tuned)
-    # prop_left_all = len(left_tuned_gauss)/len(gaussFit)       
-    # right_tuned_gauss = np.intersect1d(gaussFit, right_tuned)
-    # prop_right_all = len(right_tuned_gauss)/len(gaussFit)
-    # centre_tuned_gauss = np.intersect1d(gaussFit, centre_tuned)
-    # prop_centre_all = len(centre_tuned_gauss)/len(gaussFit)
     seshIdx_unique = np.unique(df_gaussFit['sessionIdx'])
     prop_left = np.empty(len(seshIdx_unique));prop_left[:] = np.nan
     prop_right = np.empty(len(seshIdx_unique));prop_right[:] = np.nan
@@ -775,57 +587,19 @@ def plotAzimuth_acrossMod_matchedFOV(df,peak,gaussFit, df_red,ops,eng):
                      'fitElevs_red': np.array(fitElevs_red)[inV1],
                      'area_red': np.array(areas_red)[inV1]}    
     combDF = pd.DataFrame(data= combDict)
-    #
-    # run LMM 
-    # combDF.to_csv(os.path.join(outputPath,'df_bySession_greenAndRed_fitAziPeak_a1Only_allData.csv'))
-    #prepare for LMM
-    # df_path= os.path.join(ops['outputPath'],'df_bySession_greenVsRed_forLMM.csv')
-    # combDF.to_csv(df_path)
-    # formula = 'propCentre ~ 1 + fitAzis_red + (1|animal)'
-    # # formula = 'meanElevs_green ~ 1 + fitElevs_red + (1|animal)'
-
-    # savePath = os.path.join(ops['outputPath'], 'LMM_greenVsRed_bySession.mat')
-    
-    # #run LMM and load results
-    # res, fitLines, fitCI = eng.linearMixedModel_fromPython(df_path, formula,savePath, nargout=3) 
-
-    # mat_file = scipy.io.loadmat(savePath)   
-    # res = getDict_fromMatlabStruct(mat_file, 'res')
-    
-    # if len(data_bySession) < len(commonOnes_a1):
-    #     print('empty sessions, attention!')
-        
     azimuths = [ '0', '36', '72', '108']
-    # azimuths = ['0', '36', '72', '108']
-    
-    # intercept = res['Intercept'][0][0] # from matlab LMM 
-    # slope = res['fitAzis_red'][0][0]
-    # slope_p = res['fitAzis_red'][0][1]
-    # xVals = np.arange(0,6.1,0.1)
-    # yVals = intercept + slope*xVals
     
     #Proportion, so doing spearman correlation
     r_spearman,p_spearman = scipy.stats.spearmanr(combDict['fitAzis_red'], combDict['propCentre'])
 
-    #
     #this is the nice one
     fig = plt.figure(figsize =(ops['mm']*80,ops['mm']*80), constrained_layout = True)
     ax = fig.add_subplot(1,1,1)
-    # plt.plot([0,6], [0,6], color = 'gray', linewidth = 0.3)
     plt.scatter(np.array(combDict['fitAzis_red']), np.array(combDict['propCentre']), c= 'k', s =1)
-    # x_axis = 'fitAzis_red'
-    # fitLine = np.array(fitLines[x_axis])
-    # fitLine_down = np.array(fitCI[x_axis])[:,0]
-    # fitLine_up = np.array(fitCI[x_axis])[:,1]
-    # xVals = np.linspace(min(combDF[x_axis]), max(combDF[x_axis]), len(fitLine))
-    # plt.fill_between(xVals, fitLine_up, fitLine_down, facecolor = 'gray',alpha = 0.3)
-    # plt.plot(xVals, fitLine, c = 'k', linewidth = 1, linestyle ='dashed') 
     myPlotSettings_splitAxis(fig, ax, 'Percentage centre-\ntuned AC-boutons (%)', 'Best visual azimuth, \n V1 neurons (\u00B0)','', mySize=15)
     plt.text(4,0.45,'r= ' + str(np.round(r_spearman,3)) + '\np= ' + str(np.round(p_spearman,3)), fontsize=15)
     plt.xticks([0,2,4,6], azimuths)
     plt.yticks([0,0.2,0.4,0.6], ['0', '20', '40', '60'])
-    # plt.ylim([0,0.6])
-    # plt.xlim([0,6])
     ax.tick_params(axis='y', pad=1)  
     ax.tick_params(axis='x', pad=1)   
 
@@ -839,16 +613,7 @@ def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mas
     df = df[df['x'] != 0]
     df = df[df['y'] != 0]
     df = df[df['area'] != 'OUT']
-    
-    mapsPath =  'Z:\\home\\shared\\Alex_analysis_camp\\retinotopyMaps\\'
-    map_V1 = imageio.imread(os.path.join(mapsPath,'Reference_map_allen_V1Marked.png'))
-    
-    # idx = np.nonzero(np.array([df['sessionIdx'].iloc[i] in commonOnes for i in range(len(df))]))[0]
-    # df = df.iloc[idx]
-    
-    # propCentre_green =1
-    # propCentre_red =1
-    # for b in binSize:
+        
     if propCentre_green:
         leftBorder = 4.4
         rightBorder = 7.6
@@ -888,9 +653,6 @@ def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mas
     df_red = df_red[df_red['y'] != 0]
     df_red = df_red[df_red['area'] != 'OUT']
     
-    # idx = np.nonzero(np.array([df_red['sessionIdx'].iloc[i] in commonOnes for i in range(len(df_red))]))[0]
-    # df_red = df_red.iloc[idx]
-    
     if propCentre_red:
         leftBorder = 1.6666
     
@@ -904,7 +666,6 @@ def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mas
         x_title = 'Percentage centre-tuned \nVC-neurons (%)'
     #against real azimuth
     else:
-    # b = 250
         binned_map = makeSpatialBinnedMap(ref,spatialBin =b) 
         binned_values_map = makeMeanValue_bySpatialBin_v2(df_red, binned_map,thresh =5,  varName = 'aziPeak', mask = mask, V1_mask = map_V1)
         
@@ -938,9 +699,6 @@ def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mas
     fig = plt.figure(figsize=(ops['mm']*30,ops['mm']*30), constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
     plt.scatter(vals_red, vals_green, s =5, facecolors =colors,alpha =0.5, linewidth=0)
-    # r,p = scipy.stats.spearmanr(vals_red, vals_green)
-    # lm = doLinearRegression(vals_red, vals_green)
-    # plt.plot(lm['x_vals'], lm['y_vals'],c = 'k',linestyle='dashed',linewidth = 0.5)
     plt.text(0.1,0.4, 'r: ' + str(np.round(r,3)) + '\np: ' + str(np.round(p,3)), fontsize=5)
     myPlotSettings_splitAxis(fig, ax, y_title, x_title, '',mySize=6)
     if propCentre_green:
@@ -951,82 +709,9 @@ def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mas
         plt.xticks([0,0.4, 0.8], ['0','40','80'])
     else:
         plt.xticks([0,2,4,6], ['0','36','72','108'])
-
-    # plt.xticks([20/18,50/18,80/18], ['20', '50', '80'])
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)
     
-
-# def plotPropCentre_againstAzi_spatialBins(ref,map_V1,df, df_red,ops, b =300, mask='none'):
-#     # df = df0
-    
-#     df = df[~df['x'].isnull()]
-#     df = df[~df['y'].isnull()]
-#     df = df[df['x'] != 0]
-#     df = df[df['y'] != 0]
-#     df = df[df['area'] != 'OUT']
-    
-#     # for b in binSize:
-#     leftBorder = 4.4
-#     rightBorder = 7.6
-       
-#     # b = 300
-#     left_tuned = np.nonzero(np.array(df['peak']) < leftBorder)[0]
-#     right_tuned = np.nonzero(np.array(df['peak']) > rightBorder)[0]
-#     centre_tuned0 = np.setdiff1d(np.arange(0,len(np.array(df['peak']))), left_tuned)
-#     centre_tuned1 = np.setdiff1d(np.arange(0,len(np.array(df['peak']))), right_tuned)
-#     centre_tuned = np.intersect1d(centre_tuned0, centre_tuned1)
-    
-#     binned_map = makeSpatialBinnedMap(ref,spatialBin =b) 
-    
-#     binned_prop_map_centre = makeProportions_bySpatialBin_v3(df,binned_map, centre_tuned, thresh = 5, mask = mask, V1_mask=map_V1)
-
-#     bins_unique = np.unique(binned_map)
-#     binValues_green = getBinValues(binned_map, binned_prop_map_centre, ops['map_colors'], ops['colors_LUT'])
-
-#     df_red = df_red[~df_red['x'].isnull()]
-#     df_red = df_red[~df_red['y'].isnull()]
-#     df_red = df_red[df_red['x'] != 0]
-#     df_red = df_red[df_red['y'] != 0]
-#     df_red = df_red[df_red['area'] != 'OUT']
-      
-#     # b = 250
-#     binned_map = makeSpatialBinnedMap(ref,spatialBin =b) 
-#     binned_values_map = makeMeanValue_bySpatialBin_v2(df_red, binned_map,thresh =5,  varName = 'aziPeak', mask = mask, V1_mask = map_V1)
-    
-#     binValues_red = getBinValues(binned_map, binned_values_map, ops['map_colors'], ops['colors_LUT'])
-    
-#     vals_green, vals_red, valArea = [],[],[]
-#     for i in range(len(binValues_red)):
-#         if not np.isnan(binValues_red['values'][i]) and not np.isnan(binValues_green['values'][i]) and not binValues_green['binArea'][i] =='OUT':
-#             vals_green.append(binValues_green['values'][i])
-#             vals_red.append(binValues_red['values'][i])
-#             valArea.append(binValues_green['binArea'][i])
-
-#     vals_green = np.array(vals_green)
-#     vals_red = np.array(vals_red)
-#     if mask == 'V1':
-#         title = 'V1 spatial bins only'
-#     elif mask == 'HVAs':
-#         title = 'HVA spatial bins only'
-#     else:
-#         title = 'All spatial bins'
-        
-#     areaColors = ops['myColorsDict']['HVA_colors']
-#     colors = np.array([areaColors[valArea[j]] for j in range(len(valArea))])
-   
-#     fig = plt.figure(figsize=(ops['mm']*100,ops['mm']*100), constrained_layout=True)
-#     ax = fig.add_subplot(1,1,1)
-#     plt.scatter(vals_red, vals_green, s =20, facecolors =colors,alpha =0.5, linewidth=0)
-#     r,p = scipy.stats.spearmanr(vals_red, vals_green)
-#     # lm = doLinearRegression(vals_red, vals_green)
-#     # plt.plot(lm['x_vals'], lm['y_vals'],c = 'k',linestyle='dashed',linewidth = 0.5)
-#     plt.text(3.2,0.4, 'r: ' + str(np.round(r,3)) + '\np: ' + str(np.round(p,3)), fontsize=15)
-#     myPlotSettings_splitAxis(fig, ax, 'Best sound azimuth, AC-boutons (deg)', 'Best visual azimuth, VC-neurons (deg)', '',mySize=15)
-#     plt.xticks([20/18,50/18,80/18], ['20', '50', '80'])
-#     ax.tick_params(axis='y', pad=1)   
-#     ax.tick_params(axis='x', pad=1)
-#     plt.yticks([0,0.25, 0.5], ['0','25','50'])
 
 def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
     
@@ -1103,13 +788,9 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
 
         peakElev_byArea_sh.append(peak_bySession_this_sh)
     
-    
-
-    # median_azi1 = [np.array([np.nanmedian(peakAzi_byArea[ar][i]) for i in range(len(peakAzi_byArea[ar]))]) for ar in range(len(areas))]
-    
+        
     notV1 = np.nonzero(np.array(sessionRef['seshAreas']) != 'V1')[0]
     notNan = np.nonzero(np.isnan(np.array(peak_elev_bySession)) <0.5)[0]
-    # thisIdx =notNan
     thisIdx = np.intersect1d(notV1,notNan)
     seshMapGood = np.nonzero(np.array(sessionRef['seshMapGood']) == 1)[0]
     thisIdx = np.intersect1d(thisIdx, seshMapGood)
@@ -1181,7 +862,6 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
 
     formula = 'peakElev_bySession ~ area + (1|animal)'                 
     p_LMM = eng.linearMixedModel_fromPython_anova(df_path, formula, nargout=1)
-    # t, p_kruskal = stats.kruskal(*peakAzi_byArea_red[1::], nan_policy ='omit')
     #%%
     fig = plt.figure(figsize=(ops['mm']*100, ops['mm']*100), constrained_layout =True)
     
@@ -1200,19 +880,8 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)   
 
-    # if p_LMM < 0.05:
-    #     p_mannWhitney, compIdx = doMannWhitneyU_forBoxplots(peakElev_byArea_red, multiComp = 'hs')
-    #     cnt = 0
-    #     for c in range(len(compIdx)):
-    #         if p_mannWhitney[c] < 0.05:
-    #             pos = compIdx[c].split('_')
-    #             plt.hlines(3.7+cnt, int(pos[0]), int(pos[1]), color = 'k', linewidth =0.5)
-    #             cnt += 0.05
-    #%%
     ##% Distance between green and red
     fig = plt.figure(figsize=(ops['mm']*100, ops['mm']*100), constrained_layout =True)
-    # fig = plt.figure(figsize=(self.mm*50, self.mm*50), constrained_layout =True)
-
     ax = fig.add_subplot(1,1,1)
     for ar in range(1,len(ops['areas'])):
         median_red = np.nanmedian(peakElev_byArea_red[ar])
@@ -1265,9 +934,6 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
     for tick in ax.get_xticklabels():
         tick.set_fontsize(5) 
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\elevationDistance_byArea.svg'))
-
-   
     #%%
     fig = plt.figure(figsize=(ops['mm']*100, ops['mm']*100), constrained_layout =True)
     ax = fig.add_subplot(1,1,1)
@@ -1284,21 +950,7 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
         plt.scatter(median_red, np.median(vals_thisArea), s = 20, facecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], edgecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], linewidths =1,zorder = 2)
     
         vals_green.append(np.median(vals_thisArea))
-        vals_red.append(median_red)
-
-        # if ar ==1:
-        #     vals_green= vals_thisArea         
-        #     vals_red= np.repeat(median_red,len(vals_thisArea))
-        # else:
-        #     vals_green= np.concatenate((vals_green, vals_thisArea),0)       
-        #     vals_red= np.concatenate((vals_red, np.repeat(median_red,len(vals_thisArea))),0)     
-        
-        # if ar ==1:
-        #     vals_green= np.median(vals_thisArea)       
-        #     vals_red= median_red
-        # else:
-        #     vals_green= np.concatenate((vals_green, np.median(vals_thisArea)),0)       
-        #     vals_red= np.concatenate((vals_red, median_red),0)       
+        vals_red.append(median_red)     
 
     vals_green = np.array(vals_green)
     vals_red = np.array(vals_red)
@@ -1328,8 +980,6 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
     plt.fill_between(xVals, fitLine_up, fitLine_down, facecolor = 'silver',alpha = 0.3)
     plt.plot(xVals, fitLine, c = 'k', linewidth = 0.5, linestyle='dashed')
 
-
-    # myPlotSettings_splitAxis(fig, ax, 'Best sound elevation (\u00B0)', 'Median best visual elevation (\u00B0)', '',mySize=5)
     myPlotSettings_splitAxis(fig, ax, 'Best sound elevation, AC-boutons', 'Best visual elevation, VC-neurons', '',mySize=15)
 
     plt.yticks([2-(20/18),2,2+(20/18),2+(40/18)], ['-20','0', '20', '40'])
@@ -1342,8 +992,6 @@ def plotElevationDistance(df,maps,peak, df_red, ops, eng,nShuffles=100):
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)   
 
-    # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\elevationCorrelation_byArea.svg'))
-    #%%
     return vals_green, vals_red
 
 
@@ -1352,7 +1000,6 @@ def plotElevation_spatialBins_acrossMod(ref,df, maps, peak,df_red,ops, b =300, m
     elev = getElevation_greenAud(df, maps, peak)
     
     df['peak'] = elev
-    # df = df.iloc[includeIdx]
     
     df = df[~df['x'].isnull()]
     df = df[~df['y'].isnull()]
@@ -1382,7 +1029,6 @@ def plotElevation_spatialBins_acrossMod(ref,df, maps, peak,df_red,ops, b =300, m
     mapsPath =  'Z:\\home\\shared\\Alex_analysis_camp\\retinotopyMaps\\'
     map_V1 = imageio.imread(os.path.join(mapsPath,'Reference_map_allen_V1Marked.png'))
         
-    # b = 250
     binned_map = makeSpatialBinnedMap(ref,spatialBin =b) 
     binned_values_map = makeMeanValue_bySpatialBin_v2(df_red, binned_map,thresh =5,  varName = 'elevPeak_inv', mask = mask, V1_mask = map_V1)
     

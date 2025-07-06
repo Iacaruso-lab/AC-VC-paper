@@ -1,22 +1,14 @@
-import mat73
 import os
+import scipy
 from scipy.io import loadmat
 from scipy import stats
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import sys
-import scipy
-import importlib
-#from skimage import io
-# import pims
-from matplotlib import cm
 import imageio
-import seaborn as sns
 import statsmodels.stats.multitest
 from tqdm import tqdm
 from matplotlib import gridspec
-#import svglib
 from pathlib import Path
 import nrrd
 import cv2 as cv2
@@ -37,7 +29,7 @@ def getProjectionIntensity(final_ids, df,ops,mcc,rsp,structure_tree, Ac_exp):
     outputPath = os.path.join(ops['dataPath'], 'allen_connectivity_analysis')
 
     target_areas = ['VISp','VISpl', 'VISpor','VISli', 'VISl', 'VISal', 'VISrl','VISa', 'VISam', 'VISpm']
-    areas = ['V1','P','POR','LI', 'LM', 'AL','RL','A','AM', 'PM'] #for making figures
+    areas = ops['areas']
     mcc = MouseConnectivityCache(manifest_file=Path(outputPath) / 'manifest.json', resolution=25) #25 for analysisw
     rsp = mcc.get_reference_space()
 
@@ -125,7 +117,6 @@ def plotProjectionStrength(df,intensity_byArea_all, ops):
     avg_posterior = np.mean(posterior,0)
     plt.plot(np.arange(0,len(ops['areas'])), avg_anterior, c=color_anterior, linewidth=2, label = 'Anterior')
     plt.plot(np.arange(0,len(ops['areas'])), avg_posterior, c=color_posterior,linewidth=2, label = 'Posterior')
-    # plt.scatter(np.arange(0,len(areas)), avg_posterior, c=color_posterior,s=10)
 
     for i in range(anterior.shape[0]):
         plt.plot(np.arange(0,len(ops['areas'])), anterior[i,:], c=color_anterior, linewidth=0.25)

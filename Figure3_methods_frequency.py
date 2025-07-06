@@ -4,23 +4,23 @@ Created on Fri Jun 27 10:56:21 2025
 
 @author: egeaa
 """
-
+import scipy
+from scipy.io import loadmat
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.axes_grid1 import AxesGrid
+#from matplotlib import cm
+#from mpl_toolkits.axes_grid1 import AxesGrid
 from scipy import stats
 import statsmodels.stats.multitest
 from sklearn.neighbors import KernelDensity
 import os
 #import pims
 from tqdm import tqdm
-import sys
+#import sys
 import pandas as pd
 import seaborn as sns
-import imageio
-import scipy
+#import imageio
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 
@@ -34,8 +34,7 @@ def quantifySignificance_frequencies(df,eng,ops):
     nSDs = 1
     ####
     #get responsive ones 
-    # green_aud_resp_idx, _ = G.applySignificanceTests(df, modality = 'green_aud',extra = '', sig_policy = 'responsive_maxWilcoxon', nSDs = nSDs, alpha = 0.05, capped = 1, GLM=1)
-    green_aud_resp_idx = np.load(os.path.join(ops['dataPath'],'frequencies_dataset','responsive_idx_freq_boutons.npy'))
+    green_aud_resp_idx = np.load(os.path.join(ops['dataPath'],'frequencies_dataset','responsive_idx_freq_boutons.npy')) 
     df_green_aud_resp = df.iloc[green_aud_resp_idx]
 
     green_aud_prop_resp = makeProportions_bySession_v2(df_green_aud_resp, df) #includes responsive to both
@@ -48,12 +47,6 @@ def quantifySignificance_frequencies(df,eng,ops):
     
     ##########
     #get selective
-    # green_aud_selective_freq, _ = G.applySignificanceTests(df, modality = 'green_aud',extra = '', dimension = 'long', sig_policy = 'selective_maxWilcoxon', nSDs = nSDs, alpha = 0.05, capped = 1, GLM=1)
-    # green_aud_selective_vol, _ = G.applySignificanceTests(df, modality = 'green_aud',extra = '', dimension = 'short', sig_policy = 'selective_maxWilcoxon', nSDs = nSDs, alpha = 0.05, capped = 1, GLM=1)
-    # # green_aud_selective_int, _ = G.applySignificanceTests(df, modality = 'green_aud',extra = '', dimension = 'int', sig_policy = 'selective_maxWilcoxon', nSDs = nSDs, alpha = 0.05, capped =1, GLM=1)
-    # np.save(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\data_axonsPaper\\frequencies_dataset\\selective_freq_idx_axons.npy'), green_aud_selective_freq)
-    # np.save(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\data_axonsPaper\\frequencies_dataset\\selective_vol_idx_axons.npy'), green_aud_selective_vol)
-    
     green_aud_selective_freq = np.load(os.path.join(ops['dataPath'],'frequencies_dataset', 'selective_freq_idx_boutons.npy'))
     green_aud_selective_vol = np.load(os.path.join(ops['dataPath'],'frequencies_dataset', 'selective_vol_idx_boutons.npy'))
 
@@ -109,11 +102,7 @@ def quantifySignificance_frequencies(df,eng,ops):
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
     
     ylim_sel = [-0.05, 1.05]       
-    # upper = [np.percentile(shuffled_prop_sel_azi[j,:], 97.5) for j in range(len(areas))]
-    # lower = [np.percentile(shuffled_prop_sel_azi[j,:], 2.5) for j in range(len(areas))]
-    # t,p_kruskal = stats.kruskal(data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9])
-    # plt.hlines(prop_sel_azi_sh, 1,len(areas) +2, linestyle = 'dashed', linewidth =1, color ='k')
-         
+   
     plt.vlines(1,0, ylim_sel[-1], linewidth = 0.5, color = 'gray',zorder =0)
     for i in range(len(areas)):
         plt.plot([i-meanLineWidth_small+2,i+meanLineWidth_small+2], [data_medians_byArea[i],data_medians_byArea[i]] , linewidth = 2, c = ops['myColorsDict']['HVA_colors'][ops['areas'][i]],zorder = 2, alpha =1)
@@ -127,16 +116,9 @@ def quantifySignificance_frequencies(df,eng,ops):
                     pos = compIdx[c].split('_')
                     plt.hlines(ylim_sel[-1] - cnt, int(pos[0] + 2), int(pos[1] +2), colors = 'k')                    
                     cnt +=0.01
-        # t, p_signRank = stats.wilcoxon(data[i]-prop_sel_azi_sh)
-        # if p_signRank < 0.05:
-        #     plt.text(i+2,ylim_resp[-1] -0.1, '*', fontsize=10)
-        #     print(str(p_signRank))
-        
+       
                 
     plt.ylim(ylim_sel)
-    # plt.yticks(yTickValues_resp)
-    # ax0.xaxis.set_ticklabels([])
-    # ax0.xaxis.set_ticks([])
     plt.yticks([0,0.5, 1], ['0','50', '100'])
     myPlotSettings_splitAxis(fig,ax0,'Percentage of boutons (%)','',str(p_LMM), mySize=15)  
     plt.xticks([0,2,3,4,5,6,7,8,9,10,11], np.append('All',areas), rotation =90)
@@ -146,7 +128,6 @@ def quantifySignificance_frequencies(df,eng,ops):
     # fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\propfrequencytuned_byArea.svg'))
 
     #%% Proportions for all sessions together
-
     ylim_resp = [-0.05,1.05]
         
     meanLineWidth = 0.5
@@ -160,14 +141,9 @@ def quantifySignificance_frequencies(df,eng,ops):
     xVals_scatter = np.random.normal(loc =0,scale =0.08,size = len(green_aud_prop_resp)) 
     plt.scatter(xVals_scatter, np.array(green_aud_prop_resp), s = 8, facecolors = 'white' , edgecolors = 'k', linewidths =0.5,zorder = 1)
     plt.plot([- 0.4, 0.4], [green_aud_prop_resp_median,green_aud_prop_resp_median],linewidth = 3,c = 'k',zorder =2)     
-
-
     plt.ylim(ylim_resp)
-    # plt.yticks(yTickValues_resp)
-    # ax0.xaxis.set_ticklabels([])
-    # ax0.xaxis.set_ticks([])
+   
     myPlotSettings_splitAxis(fig,ax0,'Percentage of boutons (%)','','', mySize=15)  
-    # plt.gca().set_xticklabels([])
     plt.xticks([0], ['Responsive'])
     plt.ylim([0,1])
     plt.yticks([0,0.5, 1],['0','50', '100'] )
@@ -185,15 +161,8 @@ def quantifySignificance_frequencies(df,eng,ops):
     plt.scatter(xVals_scatter, np.array(green_aud_prop_sel_vol), s = 8, facecolors = 'white' , edgecolors = 'k', linewidths =0.5)
     plt.plot([- meanLineWidth_small +1,meanLineWidth_small+1], [green_aud_prop_sel_median_vol,green_aud_prop_sel_median_vol],linewidth = 3,c = 'k')     
 
-    # xVals_scatter = np.random.normal(loc =2,scale =0.08,size = len(green_aud_prop_sel_int)) 
-    # plt.scatter(xVals_scatter, np.array(green_aud_prop_sel_int), s = 8, facecolors = 'white' , edgecolors = 'k', linewidths =0.5)
-    # plt.plot([- meanLineWidth_small+2, meanLineWidth_small+2], [green_aud_prop_sel_median_int,green_aud_prop_sel_median_int],linewidth = 3,c = 'k')     
-
     plt.ylim(ylim_sel)
     plt.yticks([0,0.5,1], ['0', '50', '100'])
-    # plt.yticks(yTickValues_resp)
-    # ax0.xaxis.set_ticklabels([])
-    # ax0.xaxis.set_ticks([])
     myPlotSettings_splitAxis(fig,ax0,'Percentage of boutons (%)','','',mySize=15)  
     plt.xticks([0,1], ['Frequency', 'Sound intensity'], rotation = 0)
     
@@ -217,8 +186,7 @@ def plotFreqDistribution_byArea(df, data, ops, fig):
         else:
             k=1
         ax = fig.add_subplot(gs[int(np.floor(cnt/2)), k])
-        # ax = fig.add_subplot(gs[ar, 0])
-
+        
         idx_thisArea = np.nonzero(np.array(df['area']) == ops['areas'][ar])[0]
 
         data_thisArea = np.array(data[idx_thisArea])
@@ -237,18 +205,11 @@ def plotFreqDistribution_byArea(df, data, ops, fig):
         logprob = kde.score_samples(x_interp.reshape(-1,1))
         plt.fill_between(x_interp, np.exp(logprob), alpha=1, color = '#C8C6C6')
 
-       
-        # plt.plot(x_interp, np.exp(logprob), alpha=1, linewidth = 0.25, color = 'k') 
-        # plt.scatter(np.median(data_all), 0.29, marker ='v', s= 30, color = 'k')
-        # plt.scatter(np.median(data_thisArea), 0.29, marker ='v', s= 30, color = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]])
-
         if k ==0:
             plt.yticks([0,0.3], ['0','30'])
         else:
             plt.yticks([0,0.3], ['',''])
 
-        # U, p = stats.mannwhitneyu(data_thisArea,data_all)
-        # plt.vlines(np.nanmedian(data_thisArea), 0, 0.25, color='r')
         if ar ==8:
             myPlotSettings_splitAxis(fig, ax, 'Percentage of boutons (%)', 'Best tone frequency (kHz)', '', mySize=15)
             plt.xticks(np.arange(0,11,2),ops['freq_names'],rotation =0)
@@ -259,41 +220,20 @@ def plotFreqDistribution_byArea(df, data, ops, fig):
             ax.spines["bottom"].set_visible(False)
             plt.xticks([],[])
             myPlotSettings_splitAxis(fig, ax, '', '', '', mySize=15)
-
-        # if p < 0.05: 
-        #     plt.text(5,0.25,'*', fontsize=10)
+  
         if ops['areas'][ar] == 'POR':
             plt.text(5.4, 0.26, 'POR',  fontsize=15, horizontalalignment ='center')
-            # plt.text(5.4, 0.26, ops['areas'][ar], horizontalalignment ='center', weight='bold')
         else:
             plt.text(5.4, 0.26, ops['areas'][ar], fontsize=15, horizontalalignment ='center')
-        # plt.text(0,0.23,  'n: ' + str(len(data_thisArea)), fontsize=5)
-        # plt.text(6,0.23,  ops['areas'][ar], fontsize=5, weight ='bold')
-        
+       
         plt.xlim([0,10])
         plt.ylim([0,0.3])
         ax.tick_params(axis='y', pad=1)   
         ax.tick_params(axis='x', pad=1)   
         ax.tick_params(axis='both', length=2)  # Change tick length for both axes
 
-        # plt.legend()
         cnt += 1
     
-    
-    # fig, ax = plt.subplots(figsize = (12,5))
-    # vp = ax.violinplot(freq_byArea, positions = np.arange(0,len(ops['areas'])), vert =True, bw_method = 0.3,widths=0.7, showmedians = False, showextrema = False)
-
-    # for ar in range(len(ops['areas'])):
-    #     body = vp['bodies'][ar]
-    #     body.set_facecolor(ops['myColorsDict']['HVA_colors'][ops['areas'][ar]])
-    #     body.set_edgecolor(ops['myColorsDict']['HVA_colors'][ops['areas'][ar]])
-    #     body.set_linewidth(1)
-    #     body.set_alpha(0.8)
-    # plt.xticks(np.arange(0,len(areas)), areas)
-    
-    
-    # plt.yticks(np.arange(0,13,2), ['-108', '-72', '-36', '0', '36', '72', '108'])
-    # myPlotSettings(fig,ax, 'Sound source azimuth','Area','') 
     fig = plt.figure(figsize=(ops['mm']*100, ops['mm']*100),constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
     x_interp= np.linspace(0, 10.1, 1000)
@@ -310,7 +250,6 @@ def plotFreqDistribution_byArea(df, data, ops, fig):
     plt.yticks([0,0.1,0.2], ['0','10', '20'])
     
     
-    
 def plotHierarchicalBootstrap_FV(name, ops):
     
     path = os.path.join(ops['dataPath'], 'frequencies_dataset',name)
@@ -323,12 +262,7 @@ def plotHierarchicalBootstrap_FV(name, ops):
     myColors = [colors[10], colors[40], colors[60], colors[80]]
 
     xLabels = ops['areas'].copy()
-    # xLabels.append('Shuffle')
-
-    # p_adj = p_difference_quantiles.copy()
-    # for i in range(p_difference_quantiles.shape[0]):
-    #     for j in range(p_difference_quantiles.shape[1]):
-            
+    
     fig = plt.figure(figsize=(ops['mm']*70, ops['mm']*70),constrained_layout =True)
     ax = fig.add_subplot(1,1,1)
     # plt.title('Ipsi, 5 an')
@@ -349,7 +283,6 @@ def plotHierarchicalBootstrap_FV(name, ops):
     fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\hierarchicalBootstrap_freq_medianComparison_boutons.svg'))
     
     
-
 def plotFrequency_bySession(df, data,ops, eng,fig):
     
     sessionRef = makeSessionReference(df)
@@ -378,7 +311,6 @@ def plotFrequency_bySession(df, data,ops, eng,fig):
     
     formula = 'freqMedian ~ area + Inj_DV + Inj_AP + (1|animal)'                 
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
-    # this = np.float64(all_pVals[0][0])
     
     #New shuffles
     nShuffles = 1000
@@ -391,7 +323,6 @@ def plotFrequency_bySession(df, data,ops, eng,fig):
         
     freq_sh = np.mean(freq_sh)
         
-    
     meanFreqs = np.array(meanFreqs) 
     areaIdx = np.array(sessionRef['seshAreas'])
     meanFreqs_byArea = []
@@ -406,7 +337,6 @@ def plotFrequency_bySession(df, data,ops, eng,fig):
     data_means_byArea = np.array([np.nanmedian(data[j]) for j in range(len(data))])       
    
     ax = fig.add_subplot(1,1,1)
-    # plt.hlines(freq_sh, -0.5,9.5,linewidth=1, color='k', linestyle ='dashed')
     p_wilcox_byArea =[]
     for i in range(len(ops['areas'])):
        
@@ -427,7 +357,6 @@ def plotFrequency_bySession(df, data,ops, eng,fig):
         
     plt.yticks([0,2,4,6,8,10], ['2','4','8', '16', '32','64']) 
     plt.ylim([0,10])
-    # plt.xlim(-1, 5.5)               
     myPlotSettings_splitAxis(fig,ax,'Median best frequency (kHz)','',str(p_LMM), mySize=15) 
 
     if p_LMM < 0.05:
@@ -472,11 +401,8 @@ def plotFreqDistribution_byStream(df, data, ops, eng):
             
     notV1 = np.nonzero(np.array(sessionRef['seshAreas']) != 'V1')[0]
     notNan = np.nonzero(np.isnan(np.array(sessionRef['myVar'])) <0.5)[0]
-    # thisIdx =notNan
     thisIdx = np.intersect1d(notV1,notNan)
-    # seshMapGood = np.nonzero(np.array(sessionRef['seshMapGood']) == 1)[0]
-    # thisIdx = np.intersect1d(thisIdx, seshMapGood)
-
+   
     df_forTest = pd.DataFrame({'freq_bySession': np.array(sessionRef['myVar'])[thisIdx],                                    
                             'area': np.array(sessionRef['seshAreas'])[thisIdx],
                             'stream': np.array(sessionRef['seshStream'])[thisIdx],
@@ -551,19 +477,12 @@ def plotTuningWidth_byArea(df, data, ops,eng):
 
         meanFreqs_byArea.append(vals_bySession_this_clean)
   
-    #Division by 2 is to put it in octaves
     data = meanFreqs_byArea
     data_means_byArea = np.array([np.nanmedian(data[j]) for j in range(len(data))])       
-    # pVals = doWilcoxon_againstRef(data, ref, multiComp = 'hs')
-   
-    # upper = [np.percentile(vals_areaShuffle[j,:], 97.5) for j in range(len(ops['areas']))]
-    # lower = [np.percentile(vals_areaShuffle[j,:], 2.5) for j in range(len(ops['areas']))]
+
     #%%
     fig = plt.figure(figsize=(100*ops['mm'], 100*ops['mm']), constrained_layout=True)
-    # gs = gridspec.GridSpec(1, 1, figure=fig, hspace=0.7, wspace=0.2,left=0.1, right=0.9, bottom=0.1, top=0.95)
-    # ax = fig.add_subplot(gs[0, 0])
     ax = fig.add_subplot(1,1,1)
-    # plt.hlines(freq_sh, -0.5,9.5,linewidth=1, color='k', linestyle ='dashed')
     p_wilcox_byArea =[]
     for i in range(len(ops['areas'])):
        
@@ -585,7 +504,6 @@ def plotTuningWidth_byArea(df, data, ops,eng):
     plt.yticks([0.5,1,1.5, 2], ['0.5', '1', '1.5', '2'])
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)   
-
 
 
 def plotProportionComplexFreq(df,includeIdx, doubleIdx, ops, eng):
@@ -629,60 +547,20 @@ def plotProportionComplexFreq(df,includeIdx, doubleIdx, ops, eng):
     df_path = os.path.join(ops['outputPath'], 'freq_forLMM.csv')
     df_props_forTest.to_csv(df_path)
     
-  
-    #New shuffles
-    # nShuffles = 10000
-    # N = 500
-    # double_sh =[]
-    # for n in range(nShuffles):
-    #     rand = np.random.choice(np.arange(0,len(df)), N, replace =True)
-        
-    #     double_sh.append(len(np.intersect1d(doubleIdx, rand))/N)
-            
-    # double_sh = np.mean(double_sh)
-   
-    
-    
-   
     formula = 'prop_double_bySession ~ area + Inj_DV + Inj_AP + (1|animal)'                 
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
 
-    # plt.figure()
-    # plt.scatter(df_props_forTest['Inj_DV'],df_props_forTest['prop_double_bySession'])
-    # nShuffles = 1000
-    # prop_double_areaShuffle = np.zeros((len(areas), nShuffles))
-
-    # for n in range(nShuffles):
-    #     areas_bySession = np.array(sessionRef['seshAreas'])
-    #     np.random.shuffle(areas_bySession)
-    #     for ar in range(len(areas)):  
-    #         idx = np.nonzero(areas_bySession  == areas[ar])[0]
-    #         prop_double_areaShuffle[ar,n] = np.nanmedian(prop_double[idx])
-#%%
     #plot it
     fig = plt.figure(figsize = (ops['mm']*100,ops['mm']*100), constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
    
     pVals_adj_mannU, compIdx = doMannWhitneyU_forBoxplots(prop_double_byArea, multiComp = 'fdr')
-    # plt.hlines(double_sh, -0.5,9.5, color='k', linestyle='dashed',linewidth=1)
-    # upper = [np.percentile(prop_double_areaShuffle[j,:], 97.5) for j in range(len(areas))]
-    # lower = [np.percentile(prop_double_areaShuffle[j,:], 2.5) for j in range(len(areas))]
-     
+  
     for ar in range(len(ops['areas'])):
         xVals_scatter = np.random.normal(loc =ar,scale =0.05,size = len(prop_double_byArea[ar])) 
         plt.plot([ar-0.25,ar+0.25], [np.nanmedian(prop_double_byArea[ar]),np.nanmedian(prop_double_byArea[ar])], linewidth = 2, c = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]],zorder = 2)
         plt.scatter(xVals_scatter, np.array(prop_double_byArea[ar]), s = 7, facecolors = 'white' , edgecolors = ops['myColorsDict']['HVA_colors'][ops['areas'][ar]], linewidths =0.5,zorder = 1,alpha =0.3)
-        
-        # plt.fill_between([ar-0.3,ar+0.3],[lower[ar], lower[ar]], [upper[ar],upper[ar]], color= 'gray', alpha = 0.2)
-        # # plt.hlines(pVals_ks[ar], ar - 0.3,ar + 0.3, color = 'r', label='real')            
-        # plt.hlines(lower[ar],ar-0.3,ar+0.3, linewidth = 2, color = self.myColorsDict['color_gray_dashedline'],zorder =0)      
-        # plt.hlines(upper[ar],ar-0.3,ar+0.3, linewidth = 2, color = self.myColorsDict['color_gray_dashedline'],zorder =0) 
-        # t,p_wilcox = stats.wilcoxon(prop_double_byArea[ar] -double_sh)
-        
-        # if p_wilcox*len(areas) < 0.05:
-        #     print(str(p_wilcox))
-        #     plt.text(ar, 0.45, '*', fontsize=10)
-            
+              
     myPlotSettings_splitAxis(fig, ax, 'Percentage of complex-tuned boutons (%)', '', 'p: ' + str(np.round(p_LMM,5)), mySize=15)  
     plt.xticks(np.arange(0,len(ops['areas'])), ops['areas'],  rotation = 90)
     plt.ylim([0, 0.5])
@@ -697,12 +575,8 @@ def plotProportionComplexFreq(df,includeIdx, doubleIdx, ops, eng):
     ax.tick_params(axis='y', pad=1)   
     ax.tick_params(axis='x', pad=1)   
 
-    #fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\complexTuning_byArea.svg'))
-
-    
  
 def plotSparsityIdx_byArea(df, data, ops, eng):
-    #%%
     sessionRef = makeSessionReference(df)
    
     sessionIdx_unique = np.array(sessionRef['seshIdx'])
@@ -730,19 +604,6 @@ def plotSparsityIdx_byArea(df, data, ops, eng):
     formula = 'freqMedian ~ area + Inj_DV + Inj_AP + (1|animal)'                 
     p_LMM, all_pVals = eng.linearMixedModel_fromPython_anova_multiVar(df_path, formula, nargout=2)
 
-    
-    #New shuffles
-    # nShuffles = 1000
-    # N = 200
-    # freq_sh = []
-    # for n in range(nShuffles):
-    #     rand = np.random.choice(np.arange(0,len(df)), N, replace =True)
-        
-    #     freq_sh.append(np.nanmedian(data[rand]))
-        
-    # freq_sh = np.mean(freq_sh)
-        
-    
     meanFreqs = np.array(meanFreqs) 
     areaIdx = np.array(sessionRef['seshAreas'])
     meanFreqs_byArea = []
@@ -755,17 +616,9 @@ def plotSparsityIdx_byArea(df, data, ops, eng):
   
     data0 = meanFreqs_byArea
     data_means_byArea = np.array([np.nanmedian(data0[j]) for j in range(len(data0))])       
-    # pVals = doWilcoxon_againstRef(data, ref, multiComp = 'hs')
    
-    # upper = [np.percentile(vals_areaShuffle[j,:], 97.5) for j in range(len(ops['areas']))]
-    # lower = [np.percentile(vals_areaShuffle[j,:], 2.5) for j in range(len(ops['areas']))]
-    
-    #%%
     fig = plt.figure(figsize=(100*ops['mm'], 100*ops['mm']), constrained_layout=True)
-    # gs = gridspec.GridSpec(1, 1, figure=fig, hspace=0.7, wspace=0.2,left=0.1, right=0.9, bottom=0.1, top=0.95)
-    # ax = fig.add_subplot(gs[0, 0])
     ax = fig.add_subplot(1,1,1)
-    # plt.hlines(freq_sh, -0.5,9.5,linewidth=1, color='k', linestyle ='dashed')
     p_wilcox_byArea =[]
     for i in range(len(ops['areas'])):
        
@@ -793,8 +646,6 @@ def plotSparsityIdx_byArea(df, data, ops, eng):
     
 def plotSignalCorrelation_byArea_FV(df, ops, computeMatrix =1):               
 
-    # maps = maps_green_aud_sig
-    #areas = ops['areas']
     areas = ['P', 'POR', 'LI', 'LM', 'AL', 'RL', 'A', 'AM', 'PM','V1'] 
 
     name = 'signal_corr_frequencies_resp_motorSub'
@@ -958,12 +809,9 @@ def plotFrequency_againstSource(df, data, ops, eng):
         
     fig.savefig(os.path.join('Z:\\home\\shared\\Alex_analysis_camp\\paperFigures\\Plots\\bestFreq_bySession_againstDV_pos.svg'))
 
-    
     df_path= os.path.join(ops['outputPath'],'df_freqs_forLMM.csv')
     df_freqs_forTest.to_csv(df_path)
     formula = 'freqMedian ~ 1 + Inj_AP + (1|animal)'
-    # formula = 'meanElevs_green ~ 1 + fitElevs_red + (1|animal)'
-
     savePath = os.path.join(ops['outputPath'], 'LMM_green.mat')
     
     #run LMM and load results

@@ -4,18 +4,12 @@ import os
 import matplotlib.pyplot as plt
 from scipy.io import loadmat 
 import imageio
-import glob
-#import tifffile as tiff
-# from skimage.registration import phase_cross_correlation,optical_flow_tvl1
-# from skimage.transform import warp
-#from pystackreg import StackReg
 from skimage import feature,filters
-# import cv2 as cv
 import matplotlib.patches as mpatches
-import matplotlib
+from matplotlib import cm
+import matplotlib.colors as mcolors
 import pandas as pd
 from tqdm import tqdm
-import matplotlib.colors as mcolors
 
 import ccf_streamlines.projection as ccfproj
 
