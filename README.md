@@ -1,6 +1,6 @@
 # AC-VC-paper
-This is code to plot the figures for the 2P imaging section of Egea-Weiss*,Turner-Bridger* et al. (####).  
-The corresponding data is available at: ###
+This is code to plot the figures for the 2P imaging section of Egea-Weiss*,Turner-Bridger* et al.(2025)  
+The corresponding data will be made available after peer-review
 
 ## Installation
 First create a conda environment with relevant packages
