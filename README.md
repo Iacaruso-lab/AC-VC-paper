@@ -3,18 +3,17 @@ This is code to plot the figures for the 2P imaging section of Egea-Weiss*,Turne
 The corresponding data will be made available after peer-review
 
 ## Installation
-First create a conda environment with relevant packages
+First create a conda environment
 
-> conda create -n paperFigures python=3.9.12 numpy=1.22.3 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 statsmodels=0.13 scikit-learn=1.0.2 jupyter seaborn  
+> conda create -n paperFigures python=3.9.12 
 
 Activate environment  
 
 > conda activate paperFigures  
 
-Then, run these lines to install some extra packages  
+Navigate to the package folder then, run the following line to install some the relevant packages into your conda enviroment
 
-> pip install tqdm pynrrd mat73 opencv-python==4.7.0.68  
-> pip install allensdk
+> pip install .
 
 You will need to install the matlab engine for python. The exact version to install depends on the versions of matlab and python on your system. See https://uk.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html for more information  
 
@@ -23,6 +22,19 @@ You will need to install the matlab engine for python. The exact version to inst
 Lastly, you will need to clone the ccf_streamlines repository, available at: https://github.com/AllenInstitute/ccf_streamlines.git  
 
 ## How to use
-Figures are plotted in the jupyter notebooks, which include "main" in their title. They rely on functions defined in the respective python modules. Most figures and supplementary figures have their own jupyter notebook, with the exception os S8, S9 and S10, which are plotted within the notebooks for main Figures 3 and 4.
-Linear mixed models are implemented in MATLAB, with functions defined in the MATLAB scripts. 
+Figures are plotted in the jupyter notebooks, which include **"main"** in their title. They rely on functions defined in the respective python modules. Most figures and supplementary figures have their own jupyter notebook, with the exception of S8, S9 and S10, which are plotted within the notebooks for main Figures 3 and 4.
+Linear mixed models for in vivo analysis are implemented in MATLAB, with functions defined in the MATLAB scripts. 
+
+For reproducing figures involving MAPseq datasets in Figs 1 and 2, you need to adjust the proj_path in the `general_analysis_parameters.yaml` to point to the the path to the processed_A1_MAPseq_datasets folder:
+`proj_path: /path/to/your/processed_A1_MAPseq_datasets`
+
+In addition, to generate figures involving flatmaps, download the following data files from ccf_streamlines (https://ccf-streamlines.readthedocs.io/en/latest/data_files.html):
+-annotation_25.nrrd
+-flatmap_butterfly.h5
+-flatmap_butterfly.nrrd
+-labelDescription_ITKSNAPColor.txt
+-surface_paths_10_v3.h5
+
+Then update the following field in the `general_analysis_parameters.yaml`:
+`path_to_additional_req: /path/to/your/additional_data_files`
 
