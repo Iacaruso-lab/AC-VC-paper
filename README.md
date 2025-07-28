@@ -13,7 +13,7 @@ Activate environment
 
 Navigate to the package folder then, run the following line to install relevant packages into your conda enviroment
 
-`pip install -e.`
+`pip install -e .`
 
 You will need to install the matlab engine for python. The exact version to install depends on the versions of matlab and python on your system. See https://uk.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html for more information  
 

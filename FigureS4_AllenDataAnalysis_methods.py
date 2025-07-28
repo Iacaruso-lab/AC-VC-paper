@@ -13,6 +13,8 @@ from pathlib import Path
 import nrrd
 import cv2 as cv2
 import math
+import statsmodels.formula.api as smf
+from statsmodels.stats.contrast import ContrastResults
 
 # allen sdk is needed
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
@@ -24,11 +26,10 @@ import ccf_streamlines.projection as ccfproj
 #https://allensdk.readthedocs.io/en/stable/_static/examples/nb/mouse_connectivity.html
 from analysis_utils import *
 
-def getProjectionIntensity(final_ids, df,ops,mcc,rsp,structure_tree, Ac_exp):
+def getProjectionIntensity(final_ids, df,ops,mcc,rsp,structure_tree, Ac_exp, target_areas):
     
     outputPath = os.path.join(ops['dataPath'], 'allen_connectivity_analysis')
 
-    target_areas = ['VISp','VISpl', 'VISpor','VISli', 'VISl', 'VISal', 'VISrl','VISa', 'VISam', 'VISpm']
     areas = ops['areas']
     mcc = MouseConnectivityCache(manifest_file=Path(outputPath) / 'manifest.json', resolution=25) #25 for analysisw
     rsp = mcc.get_reference_space()
@@ -75,8 +76,9 @@ def getProjectionIntensity(final_ids, df,ops,mcc,rsp,structure_tree, Ac_exp):
                 
     return intensity_byArea_all
 
-def plotProjectionStrength(df,intensity_byArea_all, ops):
+def plotProjectionStrength(df,intensity_byArea_all, ops, target_areas):
     areas = ops['areas']
+    outputPath = os.path.join(ops['dataPath'], 'allen_connectivity_analysis')
 
     norm_intensity_all = np.zeros_like(intensity_byArea_all)
     for e in range(len(intensity_byArea_all)):
@@ -128,31 +130,181 @@ def plotProjectionStrength(df,intensity_byArea_all, ops):
     ax.tick_params(axis='x', pad=1)
     plt.yticks([0,0.2, 0.4, 0.6, 0.8,1], ['0','0.2', '0.4', '0.6', '0.8','1'])
     
-    
+    #get euclidean distance of each injection spot to each visual area
+    centroids_left, centroids_right = getAreaCentroid(target_areas, outputPath)
+
     ###############################################
     location = np.array(df['injection_x'])
-    location = abs(location - 8600)
-    fig = plt.figure(figsize=(ops['mm']*260, ops['mm']*100), constrained_layout=True)
-    for ar in range(len(areas)):
-        intensity = norm_intensity_all[:,ar]
+    location = -(location - 10370) # this corresponds to the most posterior point of VC, in order to make AP position go posterior to anterior
+    
+    euclid_dist = getEuclidDistance(df,centroids_left, centroids_right, areas)
 
-        lm = doLinearRegression_withCI(location, intensity)
+    nAnimals = norm_intensity_all.shape[0]
+    intensity_norm = np.squeeze(norm_intensity_all.reshape(-1,1))
+    intensity = np.squeeze(intensity_byArea_all.reshape(-1,1))
+    animals0 = np.repeat(np.arange(0,nAnimals), len(areas))
+    shape = np.repeat(shapes, len(areas))
+    AP_position = np.repeat(location, len(areas))
+    Euclid_distance = np.squeeze(euclid_dist.reshape(-1,1))
+    areas0 = np.tile(areas, nAnimals)
+
+    injections_df = pd.DataFrame({'Projection_strength_norm': intensity_norm,
+                                  'Projection_strength': intensity,
+                                 'AP_position': AP_position,
+                                 'Area': areas0,
+                                 'animal' : animals0,
+                                 'Euclid_distance': Euclid_distance, 
+                                 'shape': shape})
+
+    formula = "Projection_strength_norm ~ AP_position*Area + Euclid_distance"
+
+    model = smf.glm(formula=formula, data=injections_df).fit(disp=False)
+    pval = model.pvalues
+
+    ref_area = injections_df["Area"].unique().min()
+    ref_AP_param = "AP_position"
+
+    pval_df = pd.DataFrame(index=areas, columns=["p_value", "OR"])
+
+    for area in areas:
+        if area == ref_area:
+            coef = model.params[ref_AP_param]
+            pval = model.pvalues[ref_AP_param]
+            var = model.cov_params().loc[ref_AP_param, ref_AP_param]
+        else:
+            inter_term = f"AP_position:Area[T.{area}]"
+            coef_vec = np.zeros(len(model.params))
+            coef_vec[model.params.index.get_loc(ref_AP_param)] = 1
+            coef_vec[model.params.index.get_loc(inter_term)] = 1
+            # wald test for the linear combination
+            wald: ContrastResults = model.t_test(coef_vec)
+            coef, pval, var = wald.effect[0], wald.pvalue, wald.sd**2
+
+        pval_df.loc[area, "p_value"] = pval
+        pval_df.loc[area, "OR"] = np.exp(coef)
+
+    pval_df["p_value_corrected"] = pval_df["p_value"] * len(areas) #Bonferroni correction
+
+    fig = plt.figure(figsize=(ops['mm']*145, ops['mm']*50), constrained_layout=True)
+    for ar in range(len(target_areas)):
+        df_thisArea = injections_df[injections_df['Area'] == areas[ar]].sort_values('AP_position')
+        pVal = pval_df['p_value'].loc[areas[ar]]
+
+        ap_vals = np.linspace(min(df_thisArea['AP_position']), max(df_thisArea['AP_position']), 100)
+        dist_vals = np.linspace(min(df_thisArea['Euclid_distance']), max(df_thisArea['Euclid_distance']), 100)
+        new_data = pd.DataFrame({"AP_position": ap_vals,
+                                 "Euclid_distance": dist_vals,
+                                 "Area": np.repeat(areas[ar], 100)})
+
+        pred = model.get_prediction(new_data)
+        pred_df = pred.summary_frame(alpha=0.05)
 
         ax = fig.add_subplot(2,5,ar+1)
-        for i in range(len(location)):   
-            plt.scatter(location[i], intensity[i], c= ops['myColorsDict']['HVA_colors'][areas[ar]], marker = shapes[i], alpha = 0.5, s=8, edgecolor='k', linewidth=0.15)       
-        plt.fill_between(lm['x_vals'], lm['ci_upper'], lm['ci_lower'], facecolor = ops['myColorsDict']['HVA_colors'][areas[ar]],alpha = 0.2)
-        plt.plot(lm['x_vals'], lm['y_vals'],c =ops['myColorsDict']['HVA_colors'][areas[ar]],linewidth = 1)
-        plt.text(0, 1.1,'p: ' + str(np.round(lm['pVal_corr'],4)), fontsize=12)
-        myPlotSettings_splitAxis(fig,ax, '', '',areas[ar], mySize=15)
+        for i in range(len(df_thisArea)):   
+            plt.scatter(df_thisArea['AP_position'].iloc[i], df_thisArea['Projection_strength_norm'].iloc[i], 
+                        c= ops['myColorsDict']['HVA_colors'][areas[ar]], marker = df_thisArea['shape'].iloc[i], alpha = 0.5, s=8, edgecolor='k', linewidth=0.15)       
+        plt.fill_between(new_data['AP_position'], pred_df['mean_ci_lower'], pred_df['mean_ci_upper'], facecolor = ops['myColorsDict']['HVA_colors'][areas[ar]],alpha = 0.2)
+        plt.plot(new_data['AP_position'], pred_df['mean'],c =ops['myColorsDict']['HVA_colors'][areas[ar]],linewidth = 1)
+        plt.text(1750, 1.1,'p = ' + str(np.round(pVal,4)), fontsize=5)
+        myPlotSettings_splitAxis(fig,ax, '', '',areas[ar], mySize=6)
         ax.tick_params(axis='y', pad=1)   
         ax.tick_params(axis='x', pad=1)
         plt.ylim([-0.1,1.1])
-        plt.xlim([-20,1020])
-        plt.xticks([0,500,1000])
+        plt.xlim([1750, 2800])
+        plt.xticks([2000, 2500])
         plt.yticks([0,0.5, 1], ['0', '0.5', '1'])
         
         
+#     fig = plt.figure(figsize=(ops['mm']*260, ops['mm']*100), constrained_layout=True)
+#     for ar in range(len(areas)):
+#         intensity = norm_intensity_all[:,ar]
+
+#         lm = doLinearRegression_withCI(location, intensity)
+
+#         ax = fig.add_subplot(2,5,ar+1)
+#         for i in range(len(location)):   
+#             plt.scatter(location[i], intensity[i], c= ops['myColorsDict']['HVA_colors'][areas[ar]], marker = shapes[i], alpha = 0.5, s=8, edgecolor='k', linewidth=0.15)       
+#         plt.fill_between(lm['x_vals'], lm['ci_upper'], lm['ci_lower'], facecolor = ops['myColorsDict']['HVA_colors'][areas[ar]],alpha = 0.2)
+#         plt.plot(lm['x_vals'], lm['y_vals'],c =ops['myColorsDict']['HVA_colors'][areas[ar]],linewidth = 1)
+#         plt.text(0, 1.1,'p: ' + str(np.round(lm['pVal_corr'],4)), fontsize=12)
+#         myPlotSettings_splitAxis(fig,ax, '', '',areas[ar], mySize=15)
+#         ax.tick_params(axis='y', pad=1)   
+#         ax.tick_params(axis='x', pad=1)
+#         plt.ylim([-0.1,1.1])
+#         plt.xlim([-20,1020])
+#         plt.xticks([0,500,1000])
+#         plt.yticks([0,0.5, 1], ['0', '0.5', '1'])
+        
+def getAreaCentroid(target_areas, outputPath):
+    mcc = MouseConnectivityCache(manifest_file=Path(outputPath) / 'manifest.json', resolution = 25)
+    rsp = mcc.get_reference_space()
+    structure_tree = mcc.get_structure_tree()
+
+    centroids_left = np.zeros((3, len(target_areas)))
+    centroids_right = np.zeros((3, len(target_areas)))
+
+    for ar in tqdm(range(len(target_areas))):
+        structure = structure_tree.get_structures_by_acronym([target_areas[ar]])
+        structure_id = structure[0]['id']
+
+        mask = rsp.make_structure_mask([structure_id], direct_only=False)
+
+        shape_template = mask.shape
+        x_midpoint = shape_template[2] // 2
+        right_mask = np.zeros(shape_template, dtype=bool)
+        right_mask[:, :, x_midpoint:] = 1
+
+        left_mask = np.zeros(shape_template, dtype=bool)
+        left_mask[:, :, 0:x_midpoint] = 1
+
+        #left
+        mask_left_thisRegion = mask*left_mask
+
+        voxels_idx = np.nonzero(mask_left_thisRegion)
+        centroids_left[:,ar] = getCentroid(voxels_idx)*25 #this is to put it in microns
+
+        #right
+        mask_right_thisRegion = mask*right_mask
+
+        voxels_idx = np.nonzero(mask_right_thisRegion)
+        centroids_right[:,ar] = getCentroid(voxels_idx)*25 #this is to put it in microns
+
+    return centroids_left, centroids_right
+
+def getCentroid(voxels_idx):
+    min_AP = np.amin(voxels_idx[0])
+    max_AP = np.amax(voxels_idx[0])
+    min_DV = np.amin(voxels_idx[1])
+    max_DV = np.amax(voxels_idx[1])
+    min_ML = np.amin(voxels_idx[2])
+    max_ML = np.amax(voxels_idx[2])
+    
+    centroid_AP = min_AP + ((max_AP- min_AP)/2)
+    centroid_DV = min_DV + ((max_DV- min_DV)/2)
+    centroid_ML = min_ML + ((max_ML- min_ML)/2)
+    
+    return np.array([centroid_AP, centroid_DV, centroid_ML])
+
+
+def getEuclidDistance(df,centroids_left, centroids_right, areas):
+    
+    distances = np.zeros((len(df), len(areas)))
+    
+    for i in range(len(df)):
+        entry = df.iloc[i]
+        pos = np.array(entry[['injection_x','injection_y','injection_z']])
+        
+        if entry['injection_z'] < 5000:
+            centroids = centroids_left
+        else:
+            centroids = centroids_right
+        
+        for ar in range(len(areas)):
+            centroid = centroids[:,ar]
+            distances[i,ar] = np.sqrt((pos[0] - centroid[0])**2 + (pos[1] - centroid[1])**2 + (pos[2] - centroid[2])**2)
+
+    return distances  
+
 def plotProjectionIntensity_onCortex(df, ops, final_ids):
 
 
