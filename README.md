@@ -1,11 +1,11 @@
 # AC-VC-paper
-This is code to plot the figures for the 2P imaging section of Egea-Weiss*,Turner-Bridger* et al.(2025)  
+This is code to plot the figures in Egea-Weiss*,Turner-Bridger* et al.(2025)  
 The corresponding data will be made available after peer-review
 
 ## Installation
 First create a conda environment
 
-`conda create -n paperFigures python=3.9.12 `
+`conda create -n paperFigures python=3.9.12 numpy=1.22.3 pandas=1.5.3 scipy=1.7.3 matplotlib=3.5.1 imageio=2.9.0 statsmodels=0.13 jupyter seaborn`
 
 Activate environment  
 
@@ -13,7 +13,7 @@ Activate environment
 
 Navigate to the package folder then, run the following line to install some the relevant packages into your conda enviroment
 
-`pip install .`
+`pip install tqdm pynrrd mat73 opencv-python==4.7.0.68 allensdk`
 
 You will need to install the matlab engine for python. The exact version to install depends on the versions of matlab and python on your system. See https://uk.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html for more information  
 
