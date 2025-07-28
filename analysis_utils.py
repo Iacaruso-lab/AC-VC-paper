@@ -813,7 +813,7 @@ def doWilcoxon_forBoxplots(data, multiComp = 'hs'):
         pVals_adj = pVals*n_comp
     elif multiComp == 'hs':       
         pVals_adj = statsmodels.stats.multitest.multipletests(pVals, method='hs')[1]  
-    elif multiComp == 'fdr':       
+    elif 'fdr' in multiComp:       
         pVals_adj = statsmodels.stats.multitest.multipletests(pVals, method='fdr_bh')[1]   
     else:
         pVals_adj = pVals
