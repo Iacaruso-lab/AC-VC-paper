@@ -11,7 +11,7 @@ Activate environment
 
 `conda activate paperFigures` 
 
-Navigate to the package folder then, run the following line to install some the relevant packages into your conda enviroment
+Navigate to the package folder then, run the following line to install relevant packages into your conda enviroment
 
 `pip install -e.`
 
