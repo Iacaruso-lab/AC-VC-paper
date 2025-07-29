@@ -29,12 +29,11 @@ For reproducing figures involving MAPseq datasets in Figs 1 and 2, you need to a
 `proj_path: /path/to/your/processed_A1_MAPseq_datasets`
 
 In addition, to generate figures involving flatmaps, download the following data files from ccf_streamlines (https://ccf-streamlines.readthedocs.io/en/latest/data_files.html):
--annotation_25.nrrd
 -flatmap_butterfly.h5
 -flatmap_butterfly.nrrd
 -labelDescription_ITKSNAPColor.txt
 -surface_paths_10_v3.h5
 
-Then update the following field in the `general_analysis_parameters.yaml`:
+Then update the following field in the `general_analysis_parameters.yaml` with the path to the folder containing the additional cc_streamlines data files:
 `path_to_additional_req: /path/to/your/additional_data_files`
 
