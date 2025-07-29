@@ -185,7 +185,7 @@ def plotProjectionStrength(df,intensity_byArea_all, ops, target_areas):
 
     pval_df["p_value_corrected"] = pval_df["p_value"] * len(areas) #Bonferroni correction
 
-    fig = plt.figure(figsize=(ops['mm']*145, ops['mm']*50), constrained_layout=True)
+    fig = plt.figure(figsize=(ops['mm']*200, ops['mm']*80), constrained_layout=True)
     for ar in range(len(target_areas)):
         df_thisArea = injections_df[injections_df['Area'] == areas[ar]].sort_values('AP_position')
         pVal = pval_df['p_value'].loc[areas[ar]]
