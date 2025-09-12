@@ -103,9 +103,6 @@ def set_up_for_flatmaps(proj_path):
         hemisphere="both",
         view_space_for_other_hemisphere="flatmap_butterfly",
     )
-    ref_anno = nrrd.read(f"{proj_path}/annotation_25.nrrd")
-    allen_anno = np.array(ref_anno)
-    annotation = allen_anno[0]
     return proj_top, bf_left_boundaries, bf_right_boundaries
 
 

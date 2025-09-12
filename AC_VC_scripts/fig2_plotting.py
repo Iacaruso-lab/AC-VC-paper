@@ -484,6 +484,8 @@ def plot_area_projection_probs(
     for idx, (ax, area) in enumerate(zip(axes, areas_to_plot)):
         # model = results_population_dict[area]
         pval = pval_df.loc[area, "p_value_corrected"]
+        if pval > 1:
+            pval = 1  # clip >1 adjusted p-values to 1
         plot_projection_probability_by_area_combined_model(
             ax=ax,
             area=area,
@@ -1030,7 +1032,8 @@ def add_cosine_sim_plot(ax, cbax, cosine_df, gen_parameters):
 
 def add_motif_volcano_plot(gen_parameters, to_plot, ax):
     alpha_val_stream = 1
-    to_plot["-log10_p_value"] = to_plot["-log10_p_value"].clip(upper=50)
+    # to_plot["-log10_p_value"] = to_plot["-log10_p_value"].clip(upper=50)
+    to_plot["-log10_p_value"] = to_plot["-log10_p_value"].clip(lower=0, upper=50)
     to_plot["stream"] = to_plot.index.map(hf.classify_stream)
     ax.tick_params(labelsize=gen_parameters["font_size"], width=0.25)
     for line in ["left", "bottom"]:
